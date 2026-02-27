@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .dashboard-header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-title {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-subtitle {
+            color: #666;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .orders-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-tab {
+            padding: 8px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .filter-tab:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-tab.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .order-card {
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .order-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .order-info {
+            display: flex;
+            gap: 30px;
+        }
+
+        .order-id {
+            font-weight: 700;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .order-date {
+            color: #666;
+        }
+
+        .order-customer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-accepted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-preparing {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-on_delivery {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-body {
+            margin-bottom: 20px;
+        }
+
+        .order-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f9f9f9;
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+
+        .item-qty {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .verification-code {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            font-family: monospace;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-accept {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            background: #218838;
+        }
+
+        .btn-preparing {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-preparing:hover {
+            background: #138496;
+        }
+
+        .btn-ready {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-ready:hover {
+            background: #e0a800;
+        }
+
+        .btn-dispatch {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-dispatch:hover {
+            background: #fb8c00;
+        }
+
+        .btn-delivered {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-delivered:hover {
+            background: #45a049;
+        }
+
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .order-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                padding: 15px 20px;
+            }
+
+            .filter-tabs {
+                flex-wrap: wrap;
+            }
+
+            .order-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div class="nav">
+        <div class="nav-title">🍰 Mozzo Admin</div>
+        <div class="nav-links">
+            <a href="admin.html" class="nav-link">Products</a>
+            <a href="admin-orders.html" class="nav-link active">Orders</a>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Order Management</h1>
+            <p class="dashboard-subtitle">Manage and track all customer orders</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-value" id="pendingOrders">0</div>
+                <div class="stat-label">Pending Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-value" id="activeOrders">0</div>
+                <div class="stat-label">Active Deliveries</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="totalRevenue">$0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="orders-section">
+            <div class="section-header">
+                <h2 class="section-title">Orders</h2>
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterOrders('all')">All</button>
+                    <button class="filter-tab" onclick="filterOrders('pending')">Pending</button>
+                    <button class="filter-tab" onclick="filterOrders('active')">Active</button>
+                    <button class="filter-tab" onclick="filterOrders('delivered')">Delivered</button>
+                </div>
+            </div>
+
+            <div id="ordersContainer">
+                <!-- Orders will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://kkkildlldjhttipywybz.supabase.co';
+        const SUPABASE_SECRET_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtra2lsZGxsZGpodHRpcHl3eWJ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTg0MDk5NywiZXhwIjoyMDg3NDE2OTk3fQ.tF03djWTt3wBbzfJWvVS7rg-2uYsLYvuY3v8eLVXzK0';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
+
+        let allOrders = [];
+        let currentFilter = 'all';
+
+        // Load orders
+        async function loadOrders() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allOrders = data || [];
+                updateStatistics();
+                filterOrders(currentFilter);
+
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                alert('Failed to load orders: ' + error.message);
+            }
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const total = allOrders.length;
+            const pending = allOrders.filter(o => o.order_status === 'pending').length;
+            const active = allOrders.filter(o => ['accepted', 'preparing', 'ready', 'on_delivery'].includes(o.order_status)).length;
+            const revenue = allOrders.filter(o => o.order_status === 'delivered').reduce((sum, o) => sum + parseFloat(o.total), 0);
+
+            document.getElementById('totalOrders').textContent = total;
+            document.getElementById('pendingOrders').textContent = pending;
+            document.getElementById('activeOrders').textContent = active;
+            document.getElementById('totalRevenue').textContent = `$${revenue.toFixed(2)}`;
+        }
+
+        // Filter orders
+        function filterOrders(filter) {
+            currentFilter = filter;
+
+            // Update active tab
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event?.target?.classList.add('active');
+
+            let filteredOrders = allOrders;
+
+            if (filter === 'pending') {
+                filteredOrders = allOrders.filter(o => o.order_status === 'pending');
+            } else if (filter === 'active') {
+                filteredOrders = allOrders.filter(o => ['accepted', 'preparing', 'ready', 'on_delivery'].includes(o.order_status));
+            } else if (filter === 'delivered') {
+                filteredOrders = allOrders.filter(o => o.order_status === 'delivered');
+            }
+
+            displayOrders(filteredOrders);
+        }
+
+        // Display orders
+        function displayOrders(orders) {
+            const container = document.getElementById('ordersContainer');
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <h3>No orders found</h3>
+                        <p>Orders will appear here when customers place them</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => {
+                const items = JSON.parse(order.items);
+                const date = new Date(order.created_at).toLocaleString();
+                const statusClass = `status-${order.order_status}`;
+                const statusLabel = order.order_status.replace('_', ' ').toUpperCase();
+
+                return `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <div class="order-id">Order #${order.id}</div>
+                                <div class="order-date">📅 ${date}</div>
+                                <div class="order-customer">👤 ${order.customer_name}</div>
+                            </div>
+                            <div class="status-badge ${statusClass}">${statusLabel}</div>
+                        </div>
+
+                        <div class="order-body">
+                            <div class="order-items">
+                                ${items.map(item => `
+                                    <div class="order-item">
+                                        <span class="item-qty">${item.quantity}x</span>
+                                        <span>${item.name}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="order-details">
+                                <div class="detail-item">
+                                    <div class="detail-label">Customer Phone</div>
+                                    <div class="detail-value">${order.customer_phone}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Payment Method</div>
+                                    <div class="detail-value">${order.payment_method === 'card' ? '💳 Card' : '💵 Cash on Delivery'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Delivery Address</div>
+                                    <div class="detail-value">${order.delivery_address}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Total Amount</div>
+                                    <div class="detail-value">$${parseFloat(order.total).toFixed(2)}</div>
+                                </div>
+                                ${order.delivery_instructions ? `
+                                <div class="detail-item">
+                                    <div class="detail-label">Delivery Notes</div>
+                                    <div class="detail-value">${order.delivery_instructions}</div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-item">
+                                    <div class="detail-label">Verification Code</div>
+                                    <div class="verification-code">${order.verification_code}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="order-actions">
+                            ${getOrderActions(order)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Get order actions based on status
+        function getOrderActions(order) {
+            const actions = [];
+
+            if (order.order_status === 'pending') {
+                actions.push(`<button class="action-btn btn-accept" onclick="updateOrderStatus(${order.id}, 'accepted')">✓ Accept Order</button>`);
+                actions.push(`<button class="action-btn btn-cancel" onclick="updateOrderStatus(${order.id}, 'cancelled')">✗ Cancel Order</button>`);
+            } else if (order.order_status === 'accepted') {
+                actions.push(`<button class="action-btn btn-preparing" onclick="updateOrderStatus(${order.id}, 'preparing')">👨‍🍳 Start Preparing</button>`);
+            } else if (order.order_status === 'preparing') {
+                actions.push(`<button class="action-btn btn-ready" onclick="updateOrderStatus(${order.id}, 'ready')">✓ Mark as Ready</button>`);
+            } else if (order.order_status === 'ready') {
+                actions.push(`<button class="action-btn btn-dispatch" onclick="updateOrderStatus(${order.id}, 'on_delivery')">🚚 Dispatch for Delivery</button>`);
+            } else if (order.order_status === 'on_delivery') {
+                actions.push(`<button class="action-btn btn-delivered" onclick="updateOrderStatus(${order.id}, 'delivered')">✓ Mark as Delivered</button>`);
+            }
+
+            return actions.join('');
+        }
+
+        // Update order status
+        async function updateOrderStatus(orderId, newStatus) {
+            const statusMessages = {
+                'accepted': 'Accept this order?',
+                'preparing': 'Start preparing this order?',
+                'ready': 'Mark this order as ready for delivery?',
+                'on_delivery': 'Dispatch this order for delivery?',
+                'delivered': 'Confirm this order has been delivered?',
+                'cancelled': 'Cancel this order? This action cannot be undone.'
+            };
+
+            if (!confirm(statusMessages[newStatus])) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({
+                        order_status: newStatus,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', orderId);
+
+                if (error) throw error;
+
+                // Reload orders
+                await loadOrders();
+
+                alert('Order status updated successfully!');
+
+            } catch (error) {
+                console.error('Error updating order:', error);
+                alert('Failed to update order: ' + error.message);
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadOrders, 30000);
+
+        // Initialize
+        loadOrders();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Pastry Business</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-container h1 {
+            color: #1a1a1a;
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .login-container p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #285742;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background-color: #333;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            body {
+                padding: 20px;
+                align-items: flex-start;
+                padding-top: 15vh;
+            }
+
+            .login-container {
+                padding: 30px 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            }
+
+            .login-container h1 {
+                font-size: 20px;
+            }
+
+            .login-container p {
+                font-size: 13px;
+                margin-bottom: 20px;
+            }
+
+            .form-group input {
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+
+            .btn-login {
+                padding: 10px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+        <h1>Welcome Back</h1>
+        <p>Enter your credentials to access the admin dashboard</p>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+            <div id="errorMsg" class="error-message">Invalid username or password</div>
+        </form>
+    </div>
+
+    <script>
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('adminToken');
+            if (token) {
+                try {
+                    const res = await fetch('/api/admin/verify', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        window.location.href = '/admin.html';
+                    }
+                } catch (err) {
+                    // Token invalid, stay on login page
+                    localStorage.removeItem('adminToken');
+                }
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('errorMsg');
+
+            btn.textContent = 'Signing in...';
+            btn.disabled = true;
+            errorMsg.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('adminToken', data.token);
+                    window.location.href = '/admin.html';
+                } else {
+                    errorMsg.textContent = data.message || 'Login failed';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Network error. Please try again.';
+                errorMsg.style.display = 'block';
+            } finally {
+                btn.textContent = 'Sign In';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
