@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --sidebar-bg: #ffffff;
@@ -55,7 +56,7 @@
         }
 
         .logo-container {
-            padding: 25px 30px;
+            padding: 15px 10px;
             border-bottom: 1px solid var(--border);
             margin-bottom: 20px;
         }
@@ -65,8 +66,9 @@
             font-weight: 700;
             color: var(--text-main);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 4px;
         }
 
         .logo-sub {
@@ -74,7 +76,7 @@
             font-weight: 400;
             color: var(--text-muted);
             display: block;
-            margin-top: 2px;
+            margin-top: 0;
         }
 
         .sidebar-menu {
@@ -480,18 +482,23 @@
         }
 
         .badge.received {
-            background: #EBF8FF;
-            color: #3182CE;
+            background: #d5ddd9;
+            color: #3c9263;
         }
 
         .badge.pending {
-            background: #FFFFF0;
+            background: #fafac2;
             color: #D69E2E;
         }
 
-        .badge.dispatched {
+        .badge.on-the-way {
             background: #EBF4FF;
-            color: #3182CE;
+            color: #285742;
+        }
+
+        .badge.completed {
+            background: #D4EDDA;
+            color: #155724;
         }
 
         .badge.cancel {
@@ -900,6 +907,10 @@
             background: var(--danger);
         }
 
+        .notification.warning {
+            background: #F59E0B;
+        }
+
         .loading-text {
             text-align: center;
             color: var(--text-muted);
@@ -919,6 +930,7 @@
             align-items: center;
             justify-content: center;
             z-index: 2000;
+            padding: 20px;
         }
 
         .modal-overlay.show {
@@ -930,8 +942,19 @@
             border-radius: 16px;
             padding: 30px;
             width: 400px;
-            max-width: 90%;
+            max-width: calc(100% - 40px);
+            max-height: calc(100% - 40px);
+            overflow-y: auto;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE and Edge */
+        }
+
+        .modal-content::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari, Opera */
         }
 
         .modal-header {
@@ -1130,6 +1153,16 @@
                 padding: 15px;
             }
 
+            .modal-overlay {
+                padding: 15px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                max-width: calc(100% - 30px);
+                max-height: calc(100% - 30px);
+            }
+
             .chart-header {
                 display: flex !important;
                 flex-direction: row !important;
@@ -1200,11 +1233,9 @@
     <div class="sidebar" id="sidebar">
         <div class="logo-container">
             <div class="logo">
-                <i data-lucide="chef-hat" style="color:#22c55e;" width="32" height="32"></i>
-                <div>
-                    EmpsOven
-                    <span class="logo-sub">Admin Dashboard</span>
-                </div>
+                <img src="/assets/Screenshot_2026-03-09_200503-removebg-preview.png" alt="EmpsOven Logo"
+                    style="width:220px; height:auto;">
+                <span class="logo-sub">Admin Dashboard</span>
             </div>
         </div>
 
@@ -1216,8 +1247,10 @@
             </div>
             <div class="nav-item" onclick="switchView('orders')"><i data-lucide="shopping-cart"></i><span>Order
                     List</span></div>
+            <div class="nav-item" onclick="switchView('payments')"><i
+                    data-lucide="credit-card"></i><span>Payments</span></div>
             <div class="nav-item"><i data-lucide="bar-chart-2"></i><span>Analytics</span></div>
-            <div class="nav-item"><i data-lucide="users"></i><span>Teams</span></div>
+            <div class="nav-item" onclick="switchView('riders')"><i data-lucide="users"></i><span>Riders</span></div>
 
             <div class="nav-item logout" id="logoutBtn"><i data-lucide="log-out"></i><span>Logout</span></div>
         </div>
@@ -1296,7 +1329,7 @@
                 <!-- Card 3: Products -->
                 <div class="beige-card">
                     <div class="bc-header">
-                        <div class="bc-icon"><i data-lucide="box"></i></div>
+                        <div class="bc-icon"><i data-lucide="package"></i></div>
                         <div>
                             <div class="bc-title">Product Inventory</div>
                             <div class="bc-date">Current Catalog</div>
@@ -1360,14 +1393,14 @@
                     <!-- Card 1: Product Portfolio -->
                     <div class="beige-card">
                         <div class="bc-header">
-                            <div class="bc-icon"><i data-lucide="archive"></i></div>
+                            <div class="bc-icon"><i data-lucide="package"></i></div>
                             <div>
                                 <div class="bc-title">Product Portfolio</div>
                                 <div class="bc-date">All Time</div>
                             </div>
                         </div>
                         <div class="bc-main">
-                            <div class="bc-label">Total Material:</div>
+                            <div class="bc-label">Total Products:</div>
                             <div class="bc-val" id="p_stat_added">0</div>
                         </div>
                         <div class="bc-sub-grid">
@@ -1634,6 +1667,57 @@
                 </div>
             </div>
 
+            <div class="filter-bar" style="margin-bottom: 20px;">
+                <div class="filter-input-group">
+                    <i data-lucide="search" width="16" height="16" color="#718096"></i>
+                    <input type="text" id="orderSearchInput" placeholder="Search orders by ID or customer..."
+                        oninput="filterOrders()">
+                </div>
+                <div class="custom-select" id="csOrderStatus" data-value="all">
+                    <div class="cs-header" onclick="toggleCustomSelect(this)">
+                        <span class="cs-text">All Status</span>
+                        <i data-lucide="chevron-down" width="16" height="16" color="#64748b"></i>
+                    </div>
+                    <div class="cs-options">
+                        <div class="cs-option active" data-value="all" onclick="selectOrderStatus(this)">
+                            <span>All Status</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="Pending" onclick="selectOrderStatus(this)">
+                            <span>Pending</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="Received" onclick="selectOrderStatus(this)">
+                            <span>Received</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="Assigned" onclick="selectOrderStatus(this)">
+                            <span>Assigned</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="On the Way" onclick="selectOrderStatus(this)">
+                            <span>On the Way</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="Re-assign" onclick="selectOrderStatus(this)">
+                            <span>Re-assign</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="Completed" onclick="selectOrderStatus(this)">
+                            <span>Completed</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="Cancel" onclick="selectOrderStatus(this)">
+                            <span>Cancel</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px; text-align: right;"><span
+                    id="orderResultCount">0</span> orders found</div>
+
             <div class="chart-card">
                 <div class="chart-title" style="margin-bottom: 20px;">All Orders</div>
                 <div id="allOrdersLoading" class="loading-text">Loading orders...</div>
@@ -1652,6 +1736,226 @@
                     <tbody id="allOrdersBody"></tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- VIEW: PAYMENTS -->
+        <div id="view-payments" class="view-section">
+
+            <div id="paymentStatsGrid" class="beige-grid" style="display:none;">
+                <!-- Card 1: Total Payments -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="dollar-sign"></i></div>
+                        <div>
+                            <div class="bc-title">Total Collected</div>
+                            <div class="bc-date">All Time</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Total Amount:</div>
+                        <div class="bc-val" id="p_stat_total">$0.00</div>
+                    </div>
+                </div>
+                <!-- Card 2: Successful Payments -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="check-circle"></i></div>
+                        <div>
+                            <div class="bc-title">Successful</div>
+                            <div class="bc-date">Card Payments</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Completed:</div>
+                        <div class="bc-val" id="p_stat_success">0</div>
+                    </div>
+                </div>
+                <!-- Card 3: Pending -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="clock"></i></div>
+                        <div>
+                            <div class="bc-title">Pending</div>
+                            <div class="bc-date">Pending</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Awaiting:</div>
+                        <div class="bc-val" id="p_stat_pending">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-bar" style="margin-bottom: 20px;">
+                <div class="filter-input-group">
+                    <i data-lucide="search" width="16" height="16" color="#718096"></i>
+                    <input type="text" id="paymentSearchInput" placeholder="Search by customer or order ID..."
+                        oninput="filterPayments()">
+                </div>
+                <div class="custom-select" id="csPaymentStatus" data-value="all">
+                    <div class="cs-header" onclick="toggleCustomSelect(this)">
+                        <span class="cs-text">All Payments</span>
+                        <i data-lucide="chevron-down" width="16" height="16" color="#64748b"></i>
+                    </div>
+                    <div class="cs-options">
+                        <div class="cs-option active" data-value="all" onclick="selectPaymentStatus(this)">
+                            <span>All Payments</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="succeeded" onclick="selectPaymentStatus(this)">
+                            <span>Succeeded</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="cash_on_delivery" onclick="selectPaymentStatus(this)">
+                            <span>Cash on Delivery</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="pending" onclick="selectPaymentStatus(this)">
+                            <span>Pending</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="failed" onclick="selectPaymentStatus(this)">
+                            <span>Failed</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="refunded" onclick="selectPaymentStatus(this)">
+                            <span>Refunded</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px; text-align: right;"><span
+                    id="paymentResultCount">0</span> payments found</div>
+
+            <div class="chart-card">
+                <div class="chart-title" style="margin-bottom: 20px;">Payment Transactions</div>
+                <div id="allPaymentsLoading" class="loading-text">Loading payments...</div>
+                <table id="allPaymentsTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Order ID</th>
+                            <th>Customer Name</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allPaymentsBody">
+                        <!-- Injected rows -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- VIEW: RIDERS -->
+        <div id="view-riders" class="view-section">
+
+            <div id="riderStatsGrid" class="beige-grid" style="display:none;">
+                <!-- Card 1 -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="users"></i></div>
+                        <div>
+                            <div class="bc-title">Total Riders</div>
+                            <div class="bc-date">All Time</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Active & Inactive:</div>
+                        <div class="bc-val" id="r_stat_total">0</div>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="user-check"></i></div>
+                        <div>
+                            <div class="bc-title">Ready for Work</div>
+                            <div class="bc-date">Currently Active</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Active:</div>
+                        <div class="bc-val" id="r_stat_active">0</div>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="user-x"></i></div>
+                        <div>
+                            <div class="bc-title">Unavailable</div>
+                            <div class="bc-date">Currently Offline</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Inactive:</div>
+                        <div class="bc-val" id="r_stat_inactive">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-bar" style="margin-bottom: 20px;">
+                <div class="filter-input-group">
+                    <i data-lucide="search" width="16" height="16" color="#718096"></i>
+                    <input type="text" id="riderSearchInput" placeholder="Search riders by name..."
+                        oninput="filterRiders()">
+                </div>
+                <div class="custom-select" id="csRiderStatus" data-value="all">
+                    <div class="cs-header" onclick="toggleCustomSelect(this)">
+                        <span class="cs-text">All Status</span>
+                        <i data-lucide="chevron-down" width="16" height="16" color="#64748b"></i>
+                    </div>
+                    <div class="cs-options">
+                        <div class="cs-option active" data-value="all" onclick="selectRiderStatus(this)">
+                            <span>All Status</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="active" onclick="selectRiderStatus(this)">
+                            <span>Active</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="inactive" onclick="selectRiderStatus(this)">
+                            <span>Inactive</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                        <div class="cs-option" data-value="removed" onclick="selectRiderStatus(this)">
+                            <span>Removed</span>
+                            <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px; text-align: right;"><span
+                    id="riderResultCount">0</span> riders found</div>
+
+            <div class="chart-card">
+                <div class="chart-title" style="margin-bottom: 20px;">Delivery Partners</div>
+                <div id="allRidersLoading" class="loading-text">Loading riders...</div>
+                <table id="allRidersTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Rider ID</th>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th style="text-align: center; width: 80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allRidersBody">
+                        <!-- Injected rows -->
+                    </tbody>
+                </table>
+            </div>
+
         </div>
 
     </div>
@@ -1676,6 +1980,10 @@
                     <span class="modal-val" id="omCustomer">-</span>
                 </div>
                 <div class="modal-row">
+                    <span>Phone Number</span>
+                    <span class="modal-val" id="omCustomerPhone">-</span>
+                </div>
+                <div class="modal-row">
                     <span>Item</span>
                     <span class="modal-val" id="omItem">-</span>
                 </div>
@@ -1688,7 +1996,7 @@
                     <span class="modal-val" id="omPrice">$0.00</span>
                 </div>
                 <div class="modal-row">
-                    <span>Time</span>
+                    <span>Date & Time</span>
                     <span class="modal-val" id="omTime">-</span>
                 </div>
                 <div class="modal-row">
@@ -1728,10 +2036,93 @@
                 <button style="background: var(--text-main); color: white;"
                     onclick="submitModalAction('Received')">Accept Order</button>
             </div>
+        </div>
+    </div>
 
-            <div class="modal-actions" id="omDispatchAction" style="display:none;">
-                <button style="background: #3182CE; color: white; width: 100%; border: none;"
-                    onclick="submitModalAction('Dispatched')">Mark On the Way</button>
+    <!-- Payment Details Modal -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="pmTitle">Payment Details</span>
+                <i data-lucide="x" style="cursor:pointer;" onclick="closePaymentModal()"></i>
+            </div>
+            <div class="modal-body">
+                <div class="modal-row">
+                    <span>Payment ID</span>
+                    <span class="modal-val" id="pmId">#0</span>
+                </div>
+                <div class="modal-row">
+                    <span>Order ID</span>
+                    <span class="modal-val" id="pmOrderId">#0</span>
+                </div>
+                <div class="modal-row">
+                    <span>Customer</span>
+                    <span class="modal-val" id="pmCustomer">-</span>
+                </div>
+                <div class="modal-row">
+                    <span>Amount</span>
+                    <span class="modal-val" id="pmAmount">$0.00</span>
+                </div>
+                <div class="modal-row">
+                    <span>Payment Method</span>
+                    <span class="modal-val" id="pmMethod">-</span>
+                </div>
+                <div class="modal-row">
+                    <span>Status</span>
+                    <span class="modal-val" id="pmStatus">-</span>
+                </div>
+                <div class="modal-row">
+                    <span>Date & Time</span>
+                    <span class="modal-val" id="pmDate">-</span>
+                </div>
+                <div class="modal-row" id="pmReceiptRow" style="display:none;">
+                    <span>Receipt</span>
+                    <span class="modal-val"><a id="pmReceiptLink" href="#" target="_blank" style="color: #3182CE;">View
+                            Receipt</a></span>
+                </div>
+
+                <div id="pmRefundedInfo"
+                    style="display:none; margin-top:20px; padding:15px; background:#FFF5F5; border-radius:8px; border:1px solid #FED7D7;">
+                    <strong style="color:var(--danger); display:block; margin-bottom:5px;">⚠️ Payment Refunded</strong>
+                    <div style="color:var(--text-main); font-size: 13px;">
+                        <div><strong>Refund Amount:</strong> $<span id="pmRefundAmount">0.00</span></div>
+                        <div><strong>Reason:</strong> <span id="pmRefundReason">-</span></div>
+                        <div><strong>Refunded At:</strong> <span id="pmRefundDate">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions" id="pmRefundAction" style="display:none; flex-direction: column; gap: 10px;">
+                <div
+                    style="background: #FFF5F5; padding: 15px; border-radius: 8px; border: 1px solid #FED7D7; margin-bottom: 10px;">
+                    <p style="color: var(--danger); font-size: 13px; margin: 0;">
+                        ⚠️ <strong>Warning:</strong> Processing a refund will cancel the order and return the payment to
+                        the customer. Refunds can only be processed within 24 hours of payment.
+                    </p>
+                </div>
+                <label style="font-weight:600; color:var(--text-main); font-size:13px; margin-bottom: 5px;">Refund
+                    Reason:</label>
+                <select id="refundReasonSelect"
+                    style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px;">
+                    <option value="">Select a reason...</option>
+                    <option value="Order not received">Order not received</option>
+                    <option value="Wrong items delivered">Wrong items delivered</option>
+                    <option value="Quality issues">Quality issues</option>
+                    <option value="Delivery too late">Delivery too late</option>
+                    <option value="Customer request">Customer request</option>
+                    <option value="Operational error">Operational error</option>
+                    <option value="Other">Other</option>
+                </select>
+                <textarea id="refundNotesInput" placeholder="Additional notes (optional)..."
+                    style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; min-height: 80px; resize: vertical;"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button
+                        style="background: #e2e8f0; color: var(--text-main); flex: 1; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;"
+                        onclick="cancelRefund()">Cancel</button>
+                    <button
+                        style="background: var(--danger); color: white; flex: 1; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;"
+                        onclick="confirmRefund()">Process Refund</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1764,17 +2155,21 @@
             document.getElementById('view-' + viewName).classList.add('active');
             event.currentTarget.classList.add('active');
 
-            const titles = { 'overview': 'Overview', 'products': 'Products', 'orders': 'Order Management' };
+            const titles = { 'overview': 'Overview', 'products': 'Products', 'orders': 'Order Management', 'riders': 'Riders', 'payments': 'Payments' };
             const subtitles = {
                 'overview': 'Hello Admin, welcome back!',
                 'products': 'Manage your product inventory and stock levels.',
-                'orders': 'Monitor and manage recent customer orders.'
+                'orders': 'Monitor and manage recent customer orders.',
+                'riders': 'Monitor and manage delivery personnel availability.',
+                'payments': 'Track and manage payment transactions from all orders.'
             };
             document.getElementById('pageTitle').textContent = titles[viewName];
             document.getElementById('pageSubtitle').textContent = subtitles[viewName];
 
             if (viewName === 'overview' || viewName === 'orders') loadOrders();
             if (viewName === 'products') loadProducts();
+            if (viewName === 'riders') loadRiders();
+            if (viewName === 'payments') loadPayments();
         }
 
         // Close dropdowns if clicked outside
@@ -1833,13 +2228,35 @@
             document.body.classList.toggle('sidebar-open');
         }
 
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://kkkildlldjhttipywybz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtra2lsZGxsZGpodHRpcHl3eWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDA5OTcsImV4cCI6MjA4NzQxNjk5N30.1XFow3JeDfxan06H5c925a5xj-LSoNY0HijEvWuZpLg';
+        let supabaseClient;
+        if (window.supabase) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
         /* === INITIAL LOAD === */
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+
             loadProducts();
             loadOrders();
-            setInterval(loadOrders, 10000); // Poll for new orders every 10 seconds
             renderCharts();
+            checkInactiveRidersWithOrders();
+
+            // Check for inactive riders every 30 seconds
+            setInterval(checkInactiveRidersWithOrders, 30000);
+
+            // Setup Realtime Subscription
+            if (supabaseClient) {
+                supabaseClient.channel('admin-orders-channel')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+                        console.log('Realtime Order Event:', payload);
+                        loadOrders(); // Refresh orders list instantly
+                    })
+                    .subscribe();
+            }
         });
 
 
@@ -2104,8 +2521,22 @@
                 const res = await fetch("/api/admin/orders", { headers: getAuthHeaders() });
                 const orders = await res.json();
 
+                // Get today's date at start of day in local timezone
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+                const todayOrders = orders.filter(o => {
+                    if (!o.createdAt) return false;
+                    const orderDate = new Date(o.createdAt);
+                    // Check if order was created today (between start and end of today)
+                    return orderDate >= todayStart && orderDate <= todayEnd;
+                });
+
+                console.log('Total orders:', orders.length, 'Today orders:', todayOrders.length);
+
                 if (document.getElementById('todayOrderCount')) {
-                    document.getElementById('todayOrderCount').textContent = orders.length;
+                    document.getElementById('todayOrderCount').textContent = todayOrders.length;
                 }
 
                 // POPULATE ORDER STATS
@@ -2114,7 +2545,7 @@
                 orders.forEach(o => {
                     let pr = parseFloat(o.price) || 0;
                     totalVal += pr;
-                    if (o.status === 'Received' || o.status === 'Dispatched' || o.status === 'Delivered') { completed++; earned += pr; }
+                    if (o.status === 'Completed' || o.status === 'Delivered') { completed++; earned += pr; }
                     else if (o.status === 'Pending') { unattended++; }
                     else if (o.status === 'Cancel') { lost += pr; }
                 });
@@ -2153,8 +2584,16 @@
                     if (window.lucide) lucide.createIcons();
                 }
 
-                renderOrdersTable(orders, 'recentOrdersBody');
-                renderOrdersTable(orders, 'allOrdersBody');
+                window.allOrdersList = orders;
+
+                if (todayOrders.length > 0) {
+                    renderOrdersTable(todayOrders, 'recentOrdersBody');
+                } else {
+                    const tbody = document.getElementById('recentOrdersBody');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 30px; color: var(--text-muted); font-weight: 600;">No orders done today</td></tr>';
+                }
+
+                filterOrders();
 
                 if (document.getElementById("recentOrdersLoading")) {
                     document.getElementById("recentOrdersLoading").style.display = 'none';
@@ -2169,6 +2608,353 @@
             }
         }
 
+        function filterOrders() {
+            if (!window.allOrdersList) return;
+
+            const searchTerm = (document.getElementById('orderSearchInput')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('csOrderStatus')?.dataset.value || 'all';
+
+            const filteredOrders = window.allOrdersList.filter(o => {
+                const searchMatch = o.id.toString().includes(searchTerm) || (o.customerName && o.customerName.toLowerCase().includes(searchTerm));
+
+                let statusMatch = true;
+                if (statusFilter !== 'all') {
+                    statusMatch = (o.status === statusFilter);
+                }
+
+                return searchMatch && statusMatch;
+            });
+
+            if (document.getElementById('orderResultCount')) {
+                document.getElementById('orderResultCount').textContent = filteredOrders.length;
+            }
+
+            renderOrdersTable(filteredOrders, 'allOrdersBody');
+        }
+
+        function selectRiderStatus(optionEl) {
+            const parentContainer = optionEl.parentElement.parentElement;
+            parentContainer.dataset.value = optionEl.dataset.value;
+
+            parentContainer.querySelector('.cs-text').textContent = optionEl.querySelector('span').textContent;
+
+            Array.from(optionEl.parentElement.children).forEach(el => el.classList.remove('active'));
+            optionEl.classList.add('active');
+
+            optionEl.parentElement.classList.remove('show');
+            filterRiders();
+        }
+
+        function filterRiders() {
+            if (!window.allRidersList) return;
+
+            const searchTerm = (document.getElementById('riderSearchInput')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('csRiderStatus')?.dataset.value || 'all';
+
+            const filteredRiders = window.allRidersList.filter(r => {
+                const searchMatch = r.name.toLowerCase().includes(searchTerm) || (r.username && r.username.toLowerCase().includes(searchTerm));
+
+                let statusMatch = true;
+                if (statusFilter === 'active') statusMatch = (r.rider_status === 'online' || r.is_available === true);
+                if (statusFilter === 'inactive') statusMatch = (r.rider_status === 'offline' || r.is_available === false);
+                if (statusFilter === 'removed') statusMatch = false; // "removed" are not fetched from DB query unless soft-deleted
+
+                return searchMatch && statusMatch;
+            });
+
+            if (document.getElementById('riderResultCount')) {
+                document.getElementById('riderResultCount').textContent = filteredRiders.length;
+            }
+
+            const tbody = document.getElementById("allRidersBody");
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (filteredRiders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">No delivery partners found.</td></tr>`;
+                return;
+            }
+
+            filteredRiders.forEach(r => {
+                const isOnline = r.rider_status === 'online' || (r.rider_status === undefined && r.is_available === true);
+                const statusBadge = isOnline
+                    ? '<span class="badge in-stock">Online</span>'
+                    : '<span class="badge out-stock">Offline</span>';
+
+                const dateRaw = r.created_at ? new Date(r.created_at) : new Date();
+                const dateStr = dateRaw.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span style="font-family: monospace; font-weight: 600; color: var(--primary);">#${r.id.toString().slice(0, 8)}</span></td>
+                        <td style="font-weight: 600; color: var(--text-main);">${r.name}</td>
+                        <td style="color: var(--text-muted);">@${r.username}</td>
+                        <td>${statusBadge}</td>
+                        <td style="color: var(--text-muted);">${dateStr}</td>
+                        <td style="text-align: center;">
+                            <div class="menu-container">
+                                <button class="btn-dots" onclick="toggleDropdown('rider-${r.id}'); event.stopPropagation();">⋮</button>
+                                <div id="dropdown-rider-${r.id}" class="dropdown-menu">
+                                    <button class="dropdown-item danger" onclick="deleteRider(${r.id}, '${r.name}')">Remove Rider</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function loadRiders() {
+            try {
+                const res = await fetch("/api/admin/riders", { headers: getAuthHeaders() });
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+                const riders = await res.json();
+
+                window.allRidersList = riders;
+
+                let activeCount = 0;
+                let inactiveCount = 0;
+                riders.forEach(r => {
+                    if (r.is_available) activeCount++;
+                    else inactiveCount++;
+                });
+
+                if (document.getElementById('r_stat_total')) {
+                    document.getElementById('r_stat_total').textContent = riders.length;
+                    document.getElementById('r_stat_active').textContent = activeCount;
+                    document.getElementById('r_stat_inactive').textContent = inactiveCount;
+                    document.getElementById('riderStatsGrid').style.display = 'grid';
+                    if (window.lucide) lucide.createIcons();
+                }
+
+                const table = document.getElementById("allRidersTable");
+                const loading = document.getElementById("allRidersLoading");
+
+                if (loading) loading.style.display = 'none';
+                if (table) table.style.display = 'table';
+
+                filterRiders();
+
+            } catch (error) {
+                console.error("Error loading riders:", error);
+                const loading = document.getElementById("allRidersLoading");
+                if (loading) loading.innerHTML = '<span style="color:var(--error);">Failed to load riders Data.</span>';
+            }
+        }
+
+        async function deleteRider(id, name) {
+            if (!confirm(`Are you sure you want to completely remove ${name}? They will no longer be able to log in.`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/riders/${id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+
+                if (res.ok) {
+                    showNotification(`${name} was deleted successfully.`, 'success');
+                    loadRiders();
+                } else {
+                    showNotification('Error deleting rider.', 'error');
+                }
+            } catch (error) {
+                showNotification('Connection Error.', 'error');
+            }
+        }
+
+        // ===== PAYMENTS MANAGEMENT =====
+        async function loadPayments() {
+            try {
+                const res = await fetch("/api/admin/payments", { headers: getAuthHeaders() });
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+                const payments = await res.json();
+
+                window.allPaymentsList = payments;
+
+                // Calculate stats
+                let totalAmount = 0;
+                let successCount = 0;
+                let pendingCount = 0;
+
+                payments.forEach(p => {
+                    if (p.payment_status === 'succeeded') {
+                        totalAmount += parseFloat(p.amount || 0);
+                        successCount++;
+                    }
+                    if (p.payment_status === 'pending') {
+                        pendingCount++;
+                    }
+                });
+
+                // Update stats cards
+                if (document.getElementById('p_stat_total')) {
+                    document.getElementById('p_stat_total').textContent = `$${totalAmount.toFixed(2)}`;
+                    document.getElementById('p_stat_success').textContent = successCount;
+                    document.getElementById('p_stat_pending').textContent = pendingCount;
+                    document.getElementById('paymentStatsGrid').style.display = 'grid';
+                    if (window.lucide) lucide.createIcons();
+                }
+
+                const table = document.getElementById("allPaymentsTable");
+                const loading = document.getElementById("allPaymentsLoading");
+
+                if (loading) loading.style.display = 'none';
+                if (table) table.style.display = 'table';
+
+                filterPayments();
+
+            } catch (error) {
+                console.error("Error loading payments:", error);
+                const loading = document.getElementById("allPaymentsLoading");
+                if (loading) loading.innerHTML = '<span style="color:var(--danger);">Failed to load payments data.</span>';
+            }
+        }
+
+        function filterPayments() {
+            if (!window.allPaymentsList) return;
+
+            const searchTerm = (document.getElementById('paymentSearchInput')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('csPaymentStatus')?.dataset.value || 'all';
+
+            const filteredPayments = window.allPaymentsList.filter(p => {
+                const searchMatch = p.order_id.toString().includes(searchTerm) ||
+                    (p.customer_name && p.customer_name.toLowerCase().includes(searchTerm));
+
+                let statusMatch = true;
+                if (statusFilter !== 'all') {
+                    if (statusFilter === 'refunded') {
+                        statusMatch = (p.refunded === true);
+                    } else {
+                        statusMatch = (p.payment_status === statusFilter);
+                    }
+                }
+
+                return searchMatch && statusMatch;
+            });
+
+            if (document.getElementById('paymentResultCount')) {
+                document.getElementById('paymentResultCount').textContent = filteredPayments.length;
+            }
+
+            renderPaymentsTable(filteredPayments);
+        }
+
+        function selectPaymentStatus(optionEl) {
+            const parentContainer = optionEl.parentElement.parentElement;
+            parentContainer.dataset.value = optionEl.dataset.value;
+
+            parentContainer.querySelector('.cs-text').textContent = optionEl.querySelector('span').textContent;
+
+            Array.from(optionEl.parentElement.children).forEach(el => el.classList.remove('active'));
+            optionEl.classList.add('active');
+
+            optionEl.parentElement.classList.remove('show');
+            filterPayments();
+        }
+
+        function renderPaymentsTable(payments) {
+            const tbody = document.getElementById('allPaymentsBody');
+            if (!tbody) return;
+
+            if (payments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px;">No payments found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = payments.map(payment => {
+                const date = new Date(payment.created_at);
+                const dateStr = date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                let statusBadge = '';
+                if (payment.refunded) {
+                    statusBadge = '<span class="badge cancelled">Refunded</span>';
+                } else if (payment.payment_status === 'succeeded') {
+                    statusBadge = '<span class="badge completed">Succeeded</span>';
+                } else if (payment.payment_status === 'pending') {
+                    statusBadge = '<span class="badge pending">Pending</span>';
+                } else if (payment.payment_status === 'failed') {
+                    statusBadge = '<span class="badge cancelled">Failed</span>';
+                } else {
+                    statusBadge = `<span class="badge">${payment.payment_status}</span>`;
+                }
+
+                let methodIcon = '';
+                if (payment.payment_method === 'card') {
+                    methodIcon = '💳 Card';
+                } else {
+                    methodIcon = payment.payment_method;
+                }
+
+                return `
+                    <tr>
+                        <td>#${payment.id}</td>
+                        <td>#${payment.order_id}</td>
+                        <td>${payment.customer_name || 'N/A'}</td>
+                        <td style="font-weight: 600; color: var(--success);">$${parseFloat(payment.amount).toFixed(2)}</td>
+                        <td>${methodIcon}</td>
+                        <td>${statusBadge}</td>
+                        <td>${dateStr}</td>
+                        <td>
+                            <button class="btn-action" style="background:#285742; color:white; padding: 6px 14px; font-size: 12px;" onclick="viewPayment(${payment.id})">View</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function filterOrders() {
+            if (!window.allOrdersList) return;
+
+            const searchTerm = (document.getElementById('orderSearchInput')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('csOrderStatus')?.dataset.value || 'all';
+
+            const filteredOrders = window.allOrdersList.filter(o => {
+                const searchMatch = o.id.toString().includes(searchTerm) || (o.customerName && o.customerName.toLowerCase().includes(searchTerm));
+
+                let statusMatch = true;
+                if (statusFilter !== 'all') {
+                    statusMatch = (o.status === statusFilter);
+                }
+
+                return searchMatch && statusMatch;
+            });
+
+            if (document.getElementById('orderResultCount')) {
+                document.getElementById('orderResultCount').textContent = filteredOrders.length;
+            }
+
+            renderOrdersTable(filteredOrders, 'allOrdersBody');
+        }
+
+        function selectOrderStatus(optionEl) {
+            const parentContainer = optionEl.parentElement.parentElement;
+            parentContainer.dataset.value = optionEl.dataset.value;
+
+            parentContainer.querySelector('.cs-text').textContent = optionEl.querySelector('span').textContent;
+
+            Array.from(optionEl.parentElement.children).forEach(el => el.classList.remove('active'));
+            optionEl.classList.add('active');
+
+            optionEl.parentElement.classList.remove('show');
+            filterOrders();
+        }
+
         function renderOrdersTable(orders, tbodyId) {
             const tbody = document.getElementById(tbodyId);
             if (!tbody) return;
@@ -2177,11 +2963,14 @@
                 let badgeClass = 'received';
                 if (o.status === 'Pending') badgeClass = 'pending';
                 if (o.status === 'Cancel') badgeClass = 'cancel';
-                if (o.status === 'Dispatched') badgeClass = 'dispatched';
+                if (o.status === 'On the Way') badgeClass = 'on-the-way';
+                if (o.status === 'Assigned') badgeClass = 'on-the-way';
+                if (o.status === 'Re-assign') badgeClass = 'pending';
+                if (o.status === 'Completed') badgeClass = 'completed';
 
                 let actionBtns = `
-                    <button class="btn-action" style="background:#285742; color:white; padding: 6px 14px; font-size: 12px;" onclick="viewOrder(${o.id})">View</button>
-                `;
+            <button class="btn-action" style="background:#285742; color:white; padding: 6px 14px; font-size: 12px;" onclick="viewOrder(${o.id})">View</button>
+            `;
 
                 tbody.innerHTML += `<tr>
                     <td>${o.id}</td>
@@ -2199,95 +2988,349 @@
         let globalOrdersCache = [];
 
         function viewOrder(id) {
-            // we need to pull from the most recent fetch
-            fetch("/api/admin/orders", { headers: getAuthHeaders() })
-                .then(res => res.json())
-                .then(orders => {
-                    globalOrdersCache = orders;
-                    const order = orders.find(o => o.id === id);
-                    if (!order) return;
-                    currentActiveOrder = order;
+            const order = window.allOrdersList.find(o => o.id === id);
+            if (!order) return;
+            currentActiveOrder = order;
 
-                    document.getElementById('omId').textContent = '#' + order.id;
-                    document.getElementById('omCustomer').textContent = order.customerName;
-                    document.getElementById('omItem').textContent = order.orderName;
-                    document.getElementById('omAddress').textContent = order.deliveryAddress;
-                    document.getElementById('omPrice').textContent = '$' + parseFloat(order.price).toFixed(2);
-                    document.getElementById('omTime').textContent = order.deliveryTime;
+            console.log('Order Details:', {
+                id: order.id,
+                status: order.status,
+                paymentStatus: order.paymentStatus,
+                refunded: order.refunded,
+                isRefunded: order.isRefunded
+            });
 
-                    let badgeClass = 'received';
-                    if (order.status === 'Pending') badgeClass = 'pending';
-                    if (order.status === 'Cancel') badgeClass = 'cancel';
-                    if (order.status === 'Dispatched') badgeClass = 'dispatched';
-                    document.getElementById('omStatus').innerHTML = `<span class="badge ${badgeClass}">${order.status}</span>`;
+            document.getElementById('omId').textContent = '#' + order.id;
+            document.getElementById('omCustomer').textContent = order.customerName;
+            document.getElementById('omCustomerPhone').textContent = order.customerPhone || "N/A";
+            document.getElementById('omItem').textContent = order.orderName;
+            document.getElementById('omAddress').textContent = order.deliveryAddress;
+            document.getElementById('omPrice').textContent = '$' + parseFloat(order.price).toFixed(2);
+            document.getElementById('omTime').textContent = order.deliveryTime;
 
-                    document.getElementById('declineReasonDiv').style.display = 'none';
-                    document.getElementById('declineReasonReadonly').style.display = 'none';
-                    document.getElementById('verificationCodeDisplay').style.display = 'none';
-                    document.getElementById('omActions').style.display = 'none';
-                    document.getElementById('omDispatchAction').style.display = 'none';
+            let badgeClass = 'received';
+            if (order.status === 'Pending') badgeClass = 'pending';
+            if (order.status === 'Cancel') badgeClass = 'cancel';
+            if (order.status === 'On the Way') badgeClass = 'on-the-way';
+            if (order.status === 'Assigned') badgeClass = 'on-the-way';
+            if (order.status === 'Re-assign') badgeClass = 'pending';
+            if (order.status === 'Completed') badgeClass = 'completed';
 
-                    if (order.status === 'Cancel' && order.declineReason) {
-                        document.getElementById('declineReasonReadonly').style.display = 'block';
-                        document.getElementById('omReasonText').textContent = order.declineReason;
-                    }
+            document.getElementById('omStatus').innerHTML = `<span class="badge ${badgeClass}">${order.status}</span>`;
 
-                    if (order.status === 'Dispatched' && order.verificationCode) {
-                        document.getElementById('verificationCodeDisplay').style.display = 'block';
-                        document.getElementById('omPinCode').textContent = order.verificationCode;
-                    }
+            // Show refund notice if order was refunded
+            if (order.isRefunded || order.refunded) {
+                const refundNotice = document.createElement('div');
+                refundNotice.style.cssText = 'margin-top:20px; padding:15px; background:#FFF5F5; border-radius:8px; border:1px solid #FED7D7;';
+                refundNotice.innerHTML = `
+                    <strong style="color:var(--danger); display:block; margin-bottom:5px;">⚠️ Payment Refunded</strong>
+                    <span style="color:var(--text-main); font-size: 13px;">This order was cancelled and the payment of $${parseFloat(order.price).toFixed(2)} has been refunded to the customer.</span>
+                `;
+                // Insert after status row
+                const modalBody = document.querySelector('#orderModal .modal-body');
+                if (modalBody && !document.getElementById('orderRefundNotice')) {
+                    refundNotice.id = 'orderRefundNotice';
+                    modalBody.appendChild(refundNotice);
+                }
+            } else {
+                // Remove refund notice if exists
+                const existingNotice = document.getElementById('orderRefundNotice');
+                if (existingNotice) existingNotice.remove();
+            }
 
-                    if (order.status === 'Pending') {
-                        document.getElementById('omActions').style.display = 'flex';
-                    } else if (order.status === 'Received') {
-                        document.getElementById('omDispatchAction').style.display = 'flex';
-                    }
+            document.getElementById('declineReasonDiv').style.display = 'none';
+            document.getElementById('declineReasonReadonly').style.display = 'none';
+            document.getElementById('verificationCodeDisplay').style.display = 'none';
+            document.getElementById('omActions').style.display = 'none';
 
-                    document.getElementById('orderModal').classList.add('show');
-                    if (window.lucide) lucide.createIcons();
-                });
+            if (order.status === 'Cancel' && order.declineReason) {
+                document.getElementById('declineReasonReadonly').style.display = 'block';
+                document.getElementById('omReasonText').textContent = order.declineReason;
+            }
+
+            // For accepted/assigned/on-the-way orders, they have a verification code
+            if ((order.status === 'Received' || order.status === 'Assigned' || order.status === 'On the Way') && order.verificationCode) {
+                document.getElementById('verificationCodeDisplay').style.display = 'block';
+                document.getElementById('omPinCode').textContent = order.verificationCode;
+            }
+
+            // Hide action buttons for refunded orders
+            if (order.isRefunded || order.refunded) {
+                // Refunded orders have no actions available
+            } else if (order.status === 'Pending') {
+                document.getElementById('omActions').style.display = 'flex';
+            }
+            // Auto-assign handles riders automatically — no manual assign or dispatch buttons needed
+
+            document.getElementById('orderModal').classList.add('show');
+            if (window.lucide) lucide.createIcons();
         }
 
         function closeOrderModal() {
             document.getElementById('orderModal').classList.remove('show');
-            currentActiveOrder = null;
         }
 
+        let currentActivePayment = null;
+
+        function viewPayment(id) {
+            const payment = window.allPaymentsList.find(p => p.id === id);
+            if (!payment) return;
+            currentActivePayment = payment;
+
+            console.log('Payment Details:', payment);
+
+            document.getElementById('pmId').textContent = '#' + payment.id;
+            document.getElementById('pmOrderId').textContent = '#' + payment.order_id;
+            document.getElementById('pmCustomer').textContent = payment.customer_name || 'N/A';
+            document.getElementById('pmAmount').textContent = '$' + parseFloat(payment.amount).toFixed(2);
+
+            let methodText = '';
+            if (payment.payment_method === 'card') {
+                methodText = '💳 Card';
+            } else {
+                methodText = payment.payment_method;
+            }
+            document.getElementById('pmMethod').textContent = methodText;
+
+            let statusBadge = '';
+            if (payment.refunded) {
+                statusBadge = '<span class="badge cancelled">Refunded</span>';
+            } else if (payment.payment_status === 'succeeded') {
+                statusBadge = '<span class="badge completed">Succeeded</span>';
+            } else if (payment.payment_status === 'pending') {
+                statusBadge = '<span class="badge pending">Pending</span>';
+            } else if (payment.payment_status === 'failed') {
+                statusBadge = '<span class="badge cancelled">Failed</span>';
+            } else {
+                statusBadge = `<span class="badge">${payment.payment_status}</span>`;
+            }
+            document.getElementById('pmStatus').innerHTML = statusBadge;
+
+            const date = new Date(payment.created_at);
+            const dateStr = date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('pmDate').textContent = dateStr;
+
+            // Show receipt link if available
+            if (payment.receipt_url) {
+                document.getElementById('pmReceiptLink').href = payment.receipt_url;
+                document.getElementById('pmReceiptRow').style.display = 'flex';
+            } else {
+                document.getElementById('pmReceiptRow').style.display = 'none';
+            }
+
+            // Hide refund action by default
+            document.getElementById('pmRefundAction').style.display = 'none';
+            document.getElementById('pmRefundedInfo').style.display = 'none';
+
+            // Check if already refunded
+            if (payment.refunded) {
+                document.getElementById('pmRefundAmount').textContent = parseFloat(payment.refund_amount || payment.amount).toFixed(2);
+                document.getElementById('pmRefundReason').textContent = payment.refund_reason || 'N/A';
+                if (payment.refunded_at) {
+                    const refundDate = new Date(payment.refunded_at);
+                    document.getElementById('pmRefundDate').textContent = refundDate.toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } else {
+                    document.getElementById('pmRefundDate').textContent = 'N/A';
+                }
+                document.getElementById('pmRefundedInfo').style.display = 'block';
+            } else if (payment.payment_status === 'succeeded') {
+                // Check if payment is within 24 hours
+                const paymentDate = new Date(payment.created_at);
+                const now = new Date();
+                const hoursDiff = (now - paymentDate) / (1000 * 60 * 60);
+
+                console.log('Hours since payment:', hoursDiff);
+
+                if (hoursDiff <= 24) {
+                    // Show refund button
+                    document.getElementById('pmRefundAction').style.display = 'flex';
+                }
+            }
+
+            document.getElementById('paymentModal').classList.add('show');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('show');
+            currentActivePayment = null;
+        }
+
+        function cancelRefund() {
+            // Hide refund form
+            document.getElementById('pmRefundAction').style.display = 'none';
+            // Clear inputs
+            document.getElementById('refundReasonSelect').value = '';
+            document.getElementById('refundNotesInput').value = '';
+        }
+
+        async function confirmRefund() {
+            // Check if we're refunding from payment modal or order modal
+            const payment = currentActivePayment;
+
+            if (!payment) {
+                showNotification('No payment selected', 'error');
+                return;
+            }
+
+            const reason = document.getElementById('refundReasonSelect').value;
+            const notes = document.getElementById('refundNotesInput').value.trim();
+
+            if (!reason) {
+                showNotification('Please select a refund reason', 'error');
+                return;
+            }
+
+            const fullReason = notes ? `${reason}: ${notes}` : reason;
+
+            if (!confirm(`Process refund of $${parseFloat(payment.amount).toFixed(2)} for order #${payment.order_id}?\n\nThis will:\n- Cancel the order\n- Refund the payment to customer\n- Notify the customer`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/refund', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        orderId: payment.order_id,
+                        reason: fullReason
+                    })
+                });
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(result.error || 'Failed to process refund');
+                }
+
+                showNotification('Refund processed successfully! Customer has been notified.', 'success');
+                closePaymentModal();
+                loadOrders();
+                loadPayments();
+            } catch (error) {
+                console.error('Refund error:', error);
+                showNotification('Failed to process refund: ' + error.message, 'error');
+            }
+        }
+
+        // Accept or Dispatch order
+        async function submitModalAction(status) {
+            if (!currentActiveOrder) return;
+
+            try {
+                const res = await fetch(`/api/admin/orders/${currentActiveOrder.id}/status`, {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ status: status })
+                });
+
+                if (!res.ok) throw new Error('Failed to update order status');
+
+                const result = await res.json();
+
+                if (status === 'Received') {
+                    showNotification('Order accepted! Auto-assigning rider...', 'success');
+                }
+
+                closeOrderModal();
+                loadOrders();
+            } catch (error) {
+                console.error('Error updating order:', error);
+                showNotification('Failed to update order status', 'error');
+            }
+        }
+
+        // Show decline reason input
         function promptDecline() {
             document.getElementById('omActions').style.display = 'none';
             document.getElementById('declineReasonDiv').style.display = 'block';
+        }
+
+        // Submit decline action
+        async function submitDeclineAction() {
+            const reason = document.getElementById('declineReasonInput').value.trim();
+
+            if (!reason) {
+                showNotification('Please provide a reason for declining', 'error');
+                return;
+            }
+
+            if (!currentActiveOrder) return;
+
+            try {
+                const res = await fetch(`/api/admin/orders/${currentActiveOrder.id}/status`, {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ status: 'Cancel', reason: reason })
+                });
+
+                if (!res.ok) throw new Error('Failed to decline order');
+
+                showNotification('Order declined', 'success');
+                closeOrderModal();
+                loadOrders();
+            } catch (error) {
+                console.error('Error declining order:', error);
+                showNotification('Failed to decline order', 'error');
+            }
+        }
+
+        // Cancel decline action
+        function cancelDecline() {
+            document.getElementById('declineReasonDiv').style.display = 'none';
+            document.getElementById('omActions').style.display = 'flex';
             document.getElementById('declineReasonInput').value = '';
         }
 
-        async function submitDeclineAction() {
-            const reason = document.getElementById('declineReasonInput').value.trim();
-            if (!reason) {
-                showNotification('Please enter a reason for declining', 'error');
-                return;
-            }
-            await updateOrderStatus(currentActiveOrder.id, 'Cancel', reason);
-            closeOrderModal();
-        }
-
-        async function submitModalAction(status) {
-            await updateOrderStatus(currentActiveOrder.id, status);
-            closeOrderModal();
-        }
-
-        async function updateOrderStatus(id, status, reason = null) {
+        // Check for inactive riders with assigned orders
+        async function checkInactiveRidersWithOrders() {
             try {
-                await fetch(`/api/admin/orders/${id}/status`, {
-                    method: 'PATCH',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({ status, reason })
+                const res = await fetch('/api/admin/riders/inactive-with-orders', {
+                    headers: getAuthHeaders()
                 });
-                showNotification(`Order ${status}`, 'success');
-                loadOrders();
-            } catch (e) {
-                showNotification('Failed to update order', 'error');
+
+                if (!res.ok) return;
+
+                const inactiveRidersWithOrders = await res.json();
+
+                if (inactiveRidersWithOrders.length > 0) {
+                    // Mark all affected orders as re-assign
+                    const orderIds = [];
+                    inactiveRidersWithOrders.forEach(rider => {
+                        rider.orders.forEach(order => orderIds.push(order.id));
+                    });
+
+                    // Update orders to re-assign status
+                    await fetch('/api/admin/orders/mark-reassign', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ orderIds })
+                    });
+
+                    const totalOrders = inactiveRidersWithOrders.reduce((sum, r) => sum + r.orderCount, 0);
+                    const riderNames = inactiveRidersWithOrders.map(r => r.riderName).join(', ');
+
+                    showNotification(`${totalOrders} order(s) marked for re-assignment. Rider(s) ${riderNames} are inactive.`, 'warning');
+
+                    // Reload orders to show updated status
+                    loadOrders();
+                }
+            } catch (error) {
+                console.error('Error checking inactive riders:', error);
             }
         }
-
 
         /* === CHARTS LOGIC (Chart.js) === */
         function renderCharts() {

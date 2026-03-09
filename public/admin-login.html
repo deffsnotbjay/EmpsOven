@@ -16,26 +16,70 @@
         }
 
         body {
-            background-color: #f0f4f8;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
+            background: #e8e8e8;
+            padding: 20px;
+        }
+
+        .page-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            height: 92vh;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Left side - Image panel (desktop) */
+        .image-panel {
+            flex: 0 0 50%;
+            position: relative;
+            overflow: hidden;
+            padding: 16px 0 16px 16px;
+            order: 1;
+            display: flex;
+            align-items: stretch;
+        }
+
+        /* Right side - Form panel (desktop) */
+        .form-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 40px;
+            background: #fff;
+            order: 2;
+        }
+
+        .image-panel img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .image-overlay {
+            position: absolute;
+            inset: 16px 0 16px 16px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(40, 87, 66, 0.15) 0%, rgba(0, 0, 0, 0.1) 100%);
         }
 
         .login-container {
-            background: #ffffff;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             width: 100%;
-            max-width: 400px;
-            text-align: center;
+            max-width: 380px;
         }
 
         .login-container h1 {
             color: #1a1a1a;
-            font-size: 24px;
+            font-size: 28px;
             margin-bottom: 8px;
             font-weight: 700;
         }
@@ -67,29 +111,30 @@
             font-size: 15px;
             transition: all 0.3s;
             outline: none;
+            background: #fff;
         }
 
         .form-group input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: #285742;
+            box-shadow: 0 0 0 3px rgba(40, 87, 66, 0.1);
         }
 
         .btn-login {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background-color: #285742;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 15px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.3s;
-            margin-top: 10px;
+            margin-top: 16px;
         }
 
         .btn-login:hover {
-            background-color: #333;
+            background-color: #eb3f0d;
         }
 
         .error-message {
@@ -99,37 +144,139 @@
             display: none;
         }
 
+        .admin-badge {
+            display: block;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: -10px;
+        }
+
+        .admin-badge img {
+            width: 300px;
+            height: auto;
+        }
+
         /* Responsive Design */
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
             body {
-                padding: 20px;
-                align-items: flex-start;
-                padding-top: 15vh;
+                flex-direction: column;
+                background: #1a1a1a;
+                padding: 0;
+            }
+
+            .page-wrapper {
+                flex-direction: column;
+                border-radius: 0;
+                height: 100vh;
+                max-width: 100%;
+                box-shadow: none;
+            }
+
+            .image-panel {
+                flex: 0 0 40vh;
+                width: 100%;
+                min-height: 40vh;
+                padding: 0;
+                order: 1;
+            }
+
+            .image-panel img {
+                border-radius: 0;
+            }
+
+            .image-overlay {
+                inset: 0;
+                border-radius: 0;
+            }
+
+            .form-panel {
+                flex: 1;
+                display: block;
+                padding: 0;
+                background: #fff;
+                border-radius: 28px 28px 0 0;
+                margin-top: -28px;
+                position: relative;
+                z-index: 2;
+                order: 2;
+                overflow-y: auto;
             }
 
             .login-container {
-                padding: 30px 20px;
-                border-radius: 12px;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                max-width: 100%;
+                background: transparent;
+                border-radius: 0;
+                padding: 28px 24px 24px;
+                min-height: auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .admin-badge {
+                align-self: center;
+                margin-bottom: 16px;
+            }
+
+            .admin-badge img {
+                width: 240px;
+                height: auto;
             }
 
             .login-container h1 {
-                font-size: 20px;
+                font-size: 22px;
             }
 
             .login-container p {
                 font-size: 13px;
-                margin-bottom: 20px;
+                margin-bottom: 24px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-group label {
+                font-size: 13px;
+                margin-bottom: 6px;
             }
 
             .form-group input {
-                padding: 10px 14px;
+                padding: 12px 14px;
                 font-size: 14px;
+                border-radius: 10px;
+                border: 1.5px solid #ddd;
+                background: #fafafa;
+            }
+
+            .form-group input:focus {
+                background: #fff;
             }
 
             .btn-login {
-                padding: 10px;
+                padding: 13px;
                 font-size: 15px;
+                border-radius: 15px;
+                margin-top: 14px;
+            }
+
+            .image-overlay {
+                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .image-panel {
+                flex: 0 0 38vh;
+                min-height: 38vh;
+            }
+
+            .login-container {
+                padding: 24px 20px 20px;
+                min-height: auto;
+            }
+
+            .login-container h1 {
+                font-size: 20px;
             }
         }
     </style>
@@ -137,23 +284,38 @@
 
 <body>
 
-    <div class="login-container">
-        <h1>Welcome Back</h1>
-        <p>Enter your credentials to access the admin dashboard</p>
+    <div class="page-wrapper">
 
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" placeholder="Enter username" required>
+        <!-- Image Panel (left on desktop, top on mobile) -->
+        <div class="image-panel">
+            <img src="/assets/zoshua-colah-D7cyLNwSEOo-unsplash.jpg" alt="Pastries">
+            <div class="image-overlay"></div>
+        </div>
+
+        <!-- Form Panel (right on desktop) -->
+        <div class="form-panel">
+            <div class="login-container">
+                <div class="admin-badge"><img src="/assets/Screenshot_2026-03-09_200503-removebg-preview.png"
+                        alt="Logo"></div>
+                <h1>Welcome Back</h1>
+                <p>Enter your credentials to access the admin dashboard</p>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter password" required>
+                    </div>
+                    <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+                    <div id="errorMsg" class="error-message">Invalid username or password</div>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter password" required>
-            </div>
-            <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
-            <div id="errorMsg" class="error-message">Invalid username or password</div>
-        </form>
-    </div>
+        </div>
+
+    </div> <!-- end page-wrapper -->
 
     <script>
         // Check if already logged in
@@ -168,7 +330,6 @@
                         window.location.href = '/admin.html';
                     }
                 } catch (err) {
-                    // Token invalid, stay on login page
                     localStorage.removeItem('adminToken');
                 }
             }
