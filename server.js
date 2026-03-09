@@ -1991,8 +1991,10 @@ async function checkExpiredAssignments() {
     }
 }
 
-// Run expired assignment check every 30 seconds
-setInterval(checkExpiredAssignments, 30 * 1000);
+// Run expired assignment check every 30 seconds (local only)
+if (process.env.VERCEL !== '1') {
+    setInterval(checkExpiredAssignments, 30 * 1000);
+}
 
 // ============ CURFEW: AUTO-OFFLINE ALL RIDERS AT 10 PM ============
 
@@ -2030,14 +2032,18 @@ async function checkRiderCurfew() {
     }
 }
 
-// Check curfew every 60 seconds
-setInterval(checkRiderCurfew, 60 * 1000);
+// Check curfew every 60 seconds (local only)
+if (process.env.VERCEL !== '1') {
+    setInterval(checkRiderCurfew, 60 * 1000);
+}
 
 // ============ START SERVER ============
 
-app.listen(5000, () => {
-    console.log("Server running on http://localhost:5000");
-    console.log("[AutoAssign] Expired assignment checker running (every 30s)");
-});
+if (process.env.VERCEL !== '1') {
+    app.listen(5000, () => {
+        console.log("Server running on http://localhost:5000");
+        console.log("[AutoAssign] Expired assignment checker running (every 30s)");
+    });
+}
 
 module.exports = app;
