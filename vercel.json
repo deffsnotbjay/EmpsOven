@@ -3,58 +3,15 @@
     "builds": [
         {
             "src": "server.js",
-            "use": "@vercel/node"
-        },
-        {
-            "src": "Public/**",
-            "use": "@vercel/static"
+            "use": "@vercel/node",
+            "config": {
+                "includeFiles": [
+                    "Public/**"
+                ]
+            }
         }
     ],
     "routes": [
-        {
-            "src": "/api/(.*)",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/products",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/add-product",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/update-product/(.*)",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/delete-product/(.*)",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/admin-login",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/register",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/login",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/place-order",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/create-payment-intent",
-            "dest": "/server.js"
-        },
-        {
-            "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico|webp))",
-            "dest": "/Public/$1"
-        },
         {
             "src": "/(.*)",
             "dest": "/server.js"
