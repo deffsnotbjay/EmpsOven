@@ -10,6 +10,7 @@ const rateLimit = require("express-rate-limit");
 const hpp = require("hpp");
 const NodeCache = require("node-cache");
 const fetch = require("node-fetch");
+const path = require("path");
 
 const app = express();
 
@@ -93,7 +94,7 @@ function invalidateCache(key) {
 }
 
 // Static files
-app.use(express.static("Public"));
+app.use(express.static(path.join(__dirname, "Public")));
 
 // 🔴 BACKEND USES SECRET KEY
 const supabase = createClient(
