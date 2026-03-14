@@ -160,6 +160,52 @@ app.get("/api/rider/verify", verifyToken, (req, res) => {
     res.json({ valid: true, user: req.user });
 });
 
+/* GET BESTSELLERS */
+app.get("/api/bestsellers", async (req, res) => {
+    try {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const { data: orders, error: ordersError } = await supabase
+            .from("orders")
+            .select("items")
+            .gte("created_at", sevenDaysAgo.toISOString());
+            
+        if (ordersError) throw ordersError;
+
+        const itemCounts = {};
+        orders.forEach(order => {
+            const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
+            items.forEach(item => {
+                if (!itemCounts[item.id]) itemCounts[item.id] = 0;
+                itemCounts[item.id] += (item.quantity || 1);
+            });
+        });
+
+        const sortedItemIds = Object.keys(itemCounts).sort((a, b) => itemCounts[b] - itemCounts[a]);
+        let topIds = sortedItemIds.slice(0, 3).map(id => parseInt(id, 10));
+
+        const { data: products, error: productsError } = await supabase
+            .from("products")
+            .select("*");
+            
+        if (productsError) throw productsError;
+
+        let bestsellers = products.filter(p => topIds.includes(p.id));
+        bestsellers.sort((a, b) => topIds.indexOf(a.id) - topIds.indexOf(b.id));
+
+        if (bestsellers.length < 3) {
+            const fallbackProducts = products.filter(p => !topIds.includes(p.id)).slice(0, 3 - bestsellers.length);
+            bestsellers = bestsellers.concat(fallbackProducts);
+        }
+
+        res.json(bestsellers.slice(0, 3));
+    } catch (err) {
+        console.error("Bestsellers error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 /* GET PRODUCTS */
 app.get("/products", cacheMiddleware('products', 60), async (req, res) => {
     const { data, error } = await supabase
@@ -2048,3 +2094,4 @@ if (process.env.VERCEL !== '1') {
 }
 
 module.exports = app;
+
