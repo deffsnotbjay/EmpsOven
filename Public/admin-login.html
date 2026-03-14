@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Pastry Business</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background: #dddada;
+            padding: 20px;
+        }
+
+        .page-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            height: 92vh;
+            background: #ffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Left side - Image panel (desktop) */
+        .image-panel {
+            flex: 0 0 50%;
+            position: relative;
+            overflow: hidden;
+            padding: 14px 0 14px 14px;
+            order: 1;
+            display: flex;
+            align-items: stretch;
+        }
+
+        /* Right side - Form panel (desktop) */
+        .form-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 40px;
+            background: #fff;
+            order: 2;
+        }
+
+        .image-panel img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .image-overlay {
+            position: absolute;
+            inset: 14px 0 14px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(40, 87, 66, 0.15) 0%, rgba(0, 0, 0, 0.1) 100%);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .login-container h1 {
+            color: #1a1a1a;
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .login-container p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            outline: none;
+            background: #fff;
+        }
+
+        .form-group input:focus {
+            border-color: #285742;
+            box-shadow: 0 0 0 3px rgba(40, 87, 66, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background-color: #285742;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 16px;
+        }
+
+        .btn-login:hover {
+            background-color: #eb3f0d;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .admin-badge {
+            display: block;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: -10px;
+        }
+
+        .admin-badge img {
+            width: 300px;
+            height: auto;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                background: #1a1a1a;
+                padding: 0;
+            }
+
+            .page-wrapper {
+                flex-direction: column;
+                border-radius: 0;
+                height: 100vh;
+                max-width: 100%;
+                box-shadow: none;
+            }
+
+            .image-panel {
+                flex: 0 0 40vh;
+                width: 100%;
+                min-height: 40vh;
+                padding: 0;
+                order: 1;
+            }
+
+            .image-panel img {
+                border-radius: 0;
+            }
+
+            .image-overlay {
+                inset: 0;
+                border-radius: 0;
+            }
+
+            .form-panel {
+                flex: 1;
+                display: block;
+                padding: 0;
+                background: #fff;
+                border-radius: 28px 28px 0 0;
+                margin-top: -28px;
+                position: relative;
+                z-index: 2;
+                order: 2;
+                overflow-y: auto;
+            }
+
+            .login-container {
+                max-width: 100%;
+                background: transparent;
+                border-radius: 0;
+                padding: 28px 24px 24px;
+                min-height: auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .admin-badge {
+                align-self: center;
+                margin-bottom: 16px;
+            }
+
+            .admin-badge img {
+                width: 240px;
+                height: auto;
+            }
+
+            .login-container h1 {
+                font-size: 22px;
+            }
+
+            .login-container p {
+                font-size: 13px;
+                margin-bottom: 24px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-group label {
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+
+            .form-group input {
+                padding: 12px 14px;
+                font-size: 14px;
+                border-radius: 10px;
+                border: 1.5px solid #ddd;
+                background: #fafafa;
+            }
+
+            .form-group input:focus {
+                background: #fff;
+            }
+
+            .btn-login {
+                padding: 13px;
+                font-size: 15px;
+                border-radius: 15px;
+                margin-top: 14px;
+            }
+
+            .image-overlay {
+                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .image-panel {
+                flex: 0 0 38vh;
+                min-height: 38vh;
+            }
+
+            .login-container {
+                padding: 24px 20px 20px;
+                min-height: auto;
+            }
+
+            .login-container h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-wrapper">
+
+        <!-- Image Panel (left on desktop, top on mobile) -->
+        <div class="image-panel">
+            <img src="/assets/zoshua-colah-D7cyLNwSEOo-unsplash.jpg" alt="Pastries">
+            <div class="image-overlay"></div>
+        </div>
+
+        <!-- Form Panel (right on desktop) -->
+        <div class="form-panel">
+            <div class="login-container">
+                <div class="admin-badge"><img src="/assets/logo.png" alt="Logo"></div>
+                <h1>Welcome Back</h1>
+                <p>Enter your credentials to access the admin dashboard</p>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter password" required>
+                    </div>
+                    <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+                    <div id="errorMsg" class="error-message">Invalid username or password</div>
+                </form>
+            </div>
+        </div>
+
+    </div> <!-- end page-wrapper -->
+
+    <script>
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('adminToken');
+            if (token) {
+                try {
+                    const res = await fetch('/api/admin/verify', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        window.location.href = '/admin.html';
+                    }
+                } catch (err) {
+                    localStorage.removeItem('adminToken');
+                }
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('errorMsg');
+
+            btn.textContent = 'Signing in...';
+            btn.disabled = true;
+            errorMsg.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('adminToken', data.token);
+                    window.location.href = '/admin.html';
+                } else {
+                    errorMsg.textContent = data.message || 'Login failed';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Network error. Please try again.';
+                errorMsg.style.display = 'block';
+            } finally {
+                btn.textContent = 'Sign In';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

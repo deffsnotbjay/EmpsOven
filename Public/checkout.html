@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Mozzo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f9f9f9;
+        }
+
+        /* Header */
+        .header {
+            background-color: #FF6B35;
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: white;
+            color: #FF6B35;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Delivery Address */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        /* Payment Method */
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .payment-option {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .payment-option:hover {
+            border-color: #FF6B35;
+            background: #fff5f2;
+        }
+
+        .payment-option.active {
+            border-color: #FF6B35;
+            background: #fff5f2;
+        }
+
+        .payment-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .payment-icon {
+            font-size: 32px;
+        }
+
+        .payment-details {
+            flex: 1;
+        }
+
+        .payment-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .payment-desc {
+            font-size: 14px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        /* Card Details */
+        .card-details {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .card-details.show {
+            display: block;
+        }
+
+        .card-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Order Summary */
+        .order-items {
+            margin-bottom: 20px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .item-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .item-quantity {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #FF6B35;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .summary-row.total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            padding-top: 15px;
+            border-top: 2px solid #ddd;
+            margin-top: 15px;
+        }
+
+        .place-order-btn {
+            width: 100%;
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .place-order-btn:hover:not(:disabled) {
+            background: #ff5722;
+        }
+
+        .place-order-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .checkout-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .card-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+            }
+
+            .container {
+                margin: 20px auto;
+            }
+
+            .section {
+                padding: 20px;
+            }
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FF6B35;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Custom Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.3s;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .modal-text {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .modal-btn {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .modal-btn:hover {
+            background: #ff5722;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='cart.html'">← Back to Cart</button>
+        <div class="header-title">Checkout</div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Processing your order...</p>
+        </div>
+    </div>
+
+    <!-- Custom Modal -->
+    <div class="modal-overlay" id="appModal">
+        <div class="modal-content-box">
+            <div class="modal-icon" id="modalIcon">✅</div>
+            <div class="modal-title" id="modalTitle">Success!</div>
+            <div class="modal-text" id="modalText">Message goes here.</div>
+            <button class="modal-btn" id="modalBtn" onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="checkout-layout">
+            <!-- Left Side - Forms -->
+            <div>
+                <!-- Delivery Address -->
+                <div class="section">
+                    <h2 class="section-title">📍 Delivery Address</h2>
+
+                    <!-- Location Detection Button -->
+                    <div style="margin-bottom: 15px;">
+                        <button type="button" id="detectLocationBtn" onclick="detectUserLocation()"
+                            style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            Detect My Location
+                        </button>
+                    </div>
+
+                    <form id="addressForm">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-input" id="fullName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-input" id="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Delivery Address</label>
+                            <textarea class="form-input" id="address"
+                                placeholder="Street address, apartment, floor, etc." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Delivery Instructions (Optional)</label>
+                            <input type="text" class="form-input" id="instructions"
+                                placeholder="e.g., Ring the bell twice">
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="section">
+                    <h2 class="section-title">💳 Payment Method</h2>
+
+                    <!-- Stripe Payment Request Button (hidden, used programmatically) -->
+                    <div id="payment-request-button" style="display:none;"></div>
+
+                    <div class="payment-methods">
+                        <div class="payment-option" id="googlePayOption" onclick="selectPayment('google_pay')"
+                            style="display:none;">
+                            <input type="radio" name="payment" value="google_pay">
+                            <div class="payment-icon" style="font-size:20px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                        d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z"
+                                        fill="#4285F4" />
+                                </svg>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">Google Pay</div>
+                                <div class="payment-desc">Pay quickly with Google Pay</div>
+                            </div>
+                        </div>
+
+                        <div class="payment-option" id="applePayOption" onclick="selectPayment('apple_pay')"
+                            style="display:none;">
+                            <input type="radio" name="payment" value="apple_pay">
+                            <div class="payment-icon" style="font-size:20px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                                </svg>
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-name">Apple Pay</div>
+                                <div class="payment-desc">Pay quickly with Apple Pay</div>
+                            </div>
+                        </div>
+
+                        <div class="payment-option active" onclick="selectPayment('card')">
+                            <input type="radio" name="payment" value="card" checked>
+                            <div class="payment-icon">💳</div>
+                            <div class="payment-details">
+                                <div class="payment-name">Credit/Debit Card</div>
+                                <div class="payment-desc">Secure card payment via Stripe</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stripe Card Details -->
+                    <div class="card-details show" id="cardDetails">
+                        <div class="form-group">
+                            <label class="form-label">Card Information</label>
+                            <div id="card-element"
+                                style="padding: 12px; border: 1px solid #ddd; border-radius: 10px; background: white;">
+                                <!-- Stripe Card Element will be inserted here -->
+                            </div>
+                            <div id="card-errors" style="color: #EE5D50; font-size: 14px; margin-top: 8px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Order Summary -->
+            <div>
+                <div class="section">
+                    <h2 class="section-title">📋 Order Summary</h2>
+
+                    <div class="order-items" id="orderItems">
+                        <!-- Items will be loaded here -->
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (10%):</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Delivery Fee:</span>
+                        <span id="delivery">$5.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Estimated Delivery:</span>
+                        <span id="estimatedDelivery" style="color: #285742; font-weight: 600;">--</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="total">$0.00</span>
+                    </div>
+
+                    <button class="place-order-btn" id="placeOrderBtn">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://kkkildlldjhttipywybz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtra2lsZGxsZGpodHRpcHl3eWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDA5OTcsImV4cCI6MjA4NzQxNjk5N30.1XFow3JeDfxan06H5c925a5xj-LSoNY0HijEvWuZpLg';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let currentUser = null;
+        let authToken = null;
+
+        // Function to get auth headers
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            };
+        }
+        let selectedPayment = 'card';
+        let stripe = null;
+        let elements = null;
+        let cardElement = null;
+        let paymentRequest = null;
+        let prButton = null;
+        let usePaymentRequest = false;
+        let paymentMethodDetails = {};
+
+        // Initialize Stripe
+        async function initStripe() {
+            try {
+                const configRes = await fetch('/api/config');
+                const config = await configRes.json();
+
+                if (config.stripePublishableKey && config.stripePublishableKey !== 'your_stripe_publishable_key_here') {
+                    stripe = Stripe(config.stripePublishableKey);
+                    elements = stripe.elements();
+
+                    // Calculate total for Payment Request
+                    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    const tax = subtotal * 0.1;
+                    const delivery = 5.00;
+                    const total = subtotal + tax + delivery;
+
+                    // Create Payment Request for Google Pay, Apple Pay, etc.
+                    paymentRequest = stripe.paymentRequest({
+                        country: 'US',
+                        currency: 'usd',
+                        total: {
+                            label: 'Total',
+                            amount: Math.round(total * 100),
+                        },
+                        requestPayerName: true,
+                        requestPayerEmail: true,
+                    });
+
+                    // Always show Google Pay and Apple Pay as payment options
+                    const isAppleDevice = /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+                    // Show Apple Pay on Apple devices, Google Pay on everything else
+                    if (isAppleDevice || isSafari) {
+                        document.getElementById('applePayOption').style.display = 'flex';
+                    }
+                    // Google Pay shows on Chrome/Edge/non-Safari browsers
+                    if (!isSafari) {
+                        document.getElementById('googlePayOption').style.display = 'flex';
+                    }
+
+                    // Check actual availability for the paymentRequest API
+                    const prResult = await paymentRequest.canMakePayment();
+                    console.log('canMakePayment result:', prResult);
+
+                    // Set up the payment request event handler
+                    paymentRequest.on('paymentmethod', async (ev) => {
+                        usePaymentRequest = true;
+
+                        paymentMethodDetails = {
+                            type: ev.paymentMethod.type,
+                            card: ev.paymentMethod.card,
+                            billing_details: ev.paymentMethod.billing_details
+                        };
+
+                        const fullName = document.getElementById('fullName').value.trim() || ev.payerName;
+                        const phone = document.getElementById('phone').value.trim();
+                        const address = document.getElementById('address').value.trim();
+                        const instructions = document.getElementById('instructions').value.trim();
+
+                        if (!phone || !address) {
+                            ev.complete('fail');
+                            showModal('Missing Info', 'Please fill in phone and address before using quick pay.', '⚠️');
+                            return;
+                        }
+
+                        try {
+                            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                            const tax = subtotal * 0.1;
+                            const delivery = 5.00;
+                            const total = subtotal + tax + delivery;
+
+                            const piResponse = await fetch('/api/create-payment-intent', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    amount: Math.round(total * 100),
+                                    currency: 'usd'
+                                })
+                            });
+
+                            const { clientSecret, paymentIntentId } = await piResponse.json();
+
+                            const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+                                clientSecret,
+                                { payment_method: ev.paymentMethod.id },
+                                { handleActions: false }
+                            );
+
+                            if (confirmError) {
+                                ev.complete('fail');
+                                showModal('Payment Failed', confirmError.message, '❌');
+                                return;
+                            }
+
+                            ev.complete('success');
+
+                            const orderData = {
+                                user_id: currentUser.id,
+                                user_email: ev.payerEmail || currentUser.email,
+                                customer_name: fullName,
+                                customer_phone: phone,
+                                delivery_address: address,
+                                delivery_instructions: instructions,
+                                items: JSON.stringify(cart),
+                                subtotal: subtotal,
+                                tax: tax,
+                                delivery_fee: delivery,
+                                total: total,
+                                payment_method: ev.paymentMethod.type || 'card',
+                                payment_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
+                                payment_intent_id: paymentIntentId,
+                                order_status: 'pending'
+                            };
+
+                            const orderRes = await fetch('/api/checkout', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(orderData)
+                            });
+
+                            const orderData2 = await orderRes.json();
+
+                            await fetch('/api/payments', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    order_id: orderData2.order.id,
+                                    customer_name: fullName,
+                                    amount: total,
+                                    payment_method: ev.paymentMethod.type || 'card',
+                                    payment_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
+                                    payment_intent_id: paymentIntentId,
+                                    payment_method_details: paymentMethodDetails
+                                })
+                            });
+
+                            localStorage.removeItem('cart');
+                            if (currentUser && currentUser.id && authToken) {
+                                await fetch('/api/user/cart', {
+                                    method: 'DELETE',
+                                    headers: getAuthHeaders()
+                                });
+                            }
+
+                            showModal(
+                                'Order Placed!',
+                                `Your order <b>#${orderData2.order.id}</b> has been paid and is being prepared.`,
+                                '🎉',
+                                () => { window.location.href = 'orders.html'; },
+                                'Track Order'
+                            );
+                        } catch (error) {
+                            ev.complete('fail');
+                            showModal('Order Failed', error.message, '❌');
+                            console.error('Payment Request error:', error);
+                        }
+                    });
+
+                    // Create and mount the card element
+                    cardElement = elements.create('card', {
+                        style: {
+                            base: {
+                                fontSize: '16px',
+                                color: '#333',
+                                '::placeholder': {
+                                    color: '#aab7c4',
+                                },
+                            },
+                            invalid: {
+                                color: '#EE5D50',
+                            },
+                        },
+                    });
+                    cardElement.mount('#card-element');
+
+                    // Handle real-time validation errors from the card Element
+                    cardElement.on('change', (event) => {
+                        const displayError = document.getElementById('card-errors');
+                        if (event.error) {
+                            displayError.textContent = event.error.message;
+                        } else {
+                            displayError.textContent = '';
+                        }
+                    });
+                } else {
+                    console.warn('Stripe keys not configured, card payments disabled');
+                    // Hide card option if Stripe not configured
+                    document.querySelector('.payment-option[onclick*="card"]').style.display = 'none';
+                    selectPayment('cash');
+                }
+            } catch (error) {
+                console.error('Failed to initialize Stripe:', error);
+            }
+        }
+
+        // Check authentication (but allow guest checkout)
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            if (session) {
+                currentUser = session.user;
+                authToken = session.access_token;
+
+                // Pre-fill user info from profile
+                try {
+                    const response = await fetch('/api/user/profile', {
+                        method: 'GET',
+                        headers: getAuthHeaders()
+                    });
+
+                    if (response.ok) {
+                        const profile = await response.json();
+                        document.getElementById('fullName').value = profile.full_name || '';
+                        document.getElementById('phone').value = profile.phone || '';
+                        document.getElementById('address').value = profile.address || '';
+                    }
+                } catch (error) {
+                    console.error('Error loading profile:', error);
+                }
+            } else {
+                // Guest mode - no user logged in
+                currentUser = { id: null, email: 'guest@example.com' };
+            }
+
+            return true;
+        }
+
+        // Load order items
+        function loadOrderSummary() {
+            const orderItemsEl = document.getElementById('orderItems');
+
+            if (cart.length === 0) {
+                alert('Your cart is empty');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            orderItemsEl.innerHTML = cart.map(item => {
+                const imageHTML = item.image
+                    ? `<img src="${item.image}" alt="${item.name}" class="item-image">`
+                    : `<div class="item-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 24px;">🍽️</div>`;
+
+                return `
+                    <div class="order-item">
+                        <div class="item-info">
+                            ${imageHTML}
+                            <div class="item-details">
+                                <div class="item-name">${item.name}</div>
+                                <div class="item-quantity">Qty: ${item.quantity}</div>
+                            </div>
+                        </div>
+                        <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            updateSummary();
+        }
+
+        // Update summary
+        function updateSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.1;
+            const delivery = 5.00;
+            const total = subtotal + tax + delivery;
+
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('delivery').textContent = `$${delivery.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Select payment method
+        function selectPayment(method) {
+            selectedPayment = method;
+
+            // Update UI
+            document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Update radio buttons
+            document.querySelectorAll('input[name="payment"]').forEach(radio => {
+                radio.checked = (radio.value === method);
+            });
+
+            // Show/hide card details
+            const cardDetails = document.getElementById('cardDetails');
+            if (method === 'card') {
+                cardDetails.classList.add('show');
+            } else {
+                cardDetails.classList.remove('show');
+            }
+        }
+
+        // Generate 6-digit verification code
+        function generateVerificationCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        function showModal(title, text, icon = '✅', btnAction = null, btnText = 'OK') {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalText').innerHTML = text;
+            document.getElementById('modalIcon').textContent = icon;
+            document.getElementById('modalBtn').textContent = btnText;
+
+            const btn = document.getElementById('modalBtn');
+            btn.onclick = () => {
+                document.getElementById('appModal').classList.remove('show');
+                if (btnAction) btnAction();
+            };
+
+            document.getElementById('appModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('appModal').classList.remove('show');
+        }
+
+        // Place order
+        document.getElementById('placeOrderBtn').addEventListener('click', async () => {
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const instructions = document.getElementById('instructions').value.trim();
+
+            if (!fullName || !phone || !address) {
+                showModal('Missing Info', 'Please fill in all required fields (Name, Phone, Address).', '⚠️');
+                return;
+            }
+
+            // If Google Pay or Apple Pay is selected, use Payment Request API
+            if (selectedPayment === 'google_pay' || selectedPayment === 'apple_pay') {
+                if (!paymentRequest) {
+                    showModal('Payment Error', 'Digital wallet payment is not available. Please use card payment instead.', '⚠️');
+                    return;
+                }
+
+                // Update the payment request amount before showing
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const tax = subtotal * 0.1;
+                const delivery = 5.00;
+                const total = subtotal + tax + delivery;
+
+                paymentRequest.update({
+                    total: {
+                        label: 'Total',
+                        amount: Math.round(total * 100),
+                    },
+                });
+
+                try {
+                    // Check if the wallet is actually available
+                    const canPay = await paymentRequest.canMakePayment();
+                    if (!canPay) {
+                        const walletName = selectedPayment === 'google_pay' ? 'Google Pay' : 'Apple Pay';
+                        showModal('Wallet Not Set Up', `${walletName} is not configured on this device/browser. Please add a payment method to your ${walletName} wallet, or use card payment instead.`, '⚠️');
+                        return;
+                    }
+                    paymentRequest.show();
+                } catch (err) {
+                    console.error('Payment Request show error:', err);
+                    showModal('Payment Error', 'Could not open digital wallet. Please try card payment instead.', '⚠️');
+                }
+                return;
+            }
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.add('show');
+
+            try {
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const tax = subtotal * 0.1;
+                const delivery = 5.00;
+                const total = subtotal + tax + delivery;
+
+                let paymentIntentId = null;
+                let paymentStatus = 'pending';
+                let paymentMethod = 'card'; // Only card payment is supported
+
+                // Handle Stripe payment
+                if (stripe && cardElement) {
+                    // Create payment intent
+                    const piResponse = await fetch('/api/create-payment-intent', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            amount: total,
+                            customerName: fullName,
+                            customerEmail: currentUser.email
+                        })
+                    });
+
+                    const { clientSecret, paymentIntentId: piId } = await piResponse.json();
+                    paymentIntentId = piId;
+
+                    if (!clientSecret) {
+                        throw new Error('Failed to create payment intent');
+                    }
+
+                    // Confirm the payment with Stripe
+                    const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: {
+                            card: cardElement,
+                            billing_details: {
+                                name: fullName,
+                                email: currentUser.email
+                            }
+                        }
+                    });
+
+                    if (stripeError) {
+                        loadingOverlay.classList.remove('show');
+                        showModal('Payment Failed', stripeError.message, '❌');
+
+                        // Record failed payment
+                        await fetch('/api/payments', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                order_id: 0,
+                                customer_name: fullName,
+                                amount: total,
+                                payment_method: 'card',
+                                payment_status: 'failed',
+                                payment_intent_id: paymentIntentId,
+                                failure_reason: stripeError.message
+                            })
+                        });
+                        return;
+                    }
+
+                    paymentStatus = paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending';
+
+                    // Store payment method details for refund purposes
+                    if (paymentIntent.payment_method) {
+                        paymentMethodDetails = {
+                            type: 'card',
+                            last4: paymentIntent.charges?.data[0]?.payment_method_details?.card?.last4,
+                            brand: paymentIntent.charges?.data[0]?.payment_method_details?.card?.brand,
+                            billing_details: {
+                                name: fullName,
+                                email: currentUser.email
+                            }
+                        };
+                    }
+                }
+
+                // Create order
+                const orderData = {
+                    user_id: currentUser.id,
+                    user_email: currentUser.email,
+                    customer_name: fullName,
+                    customer_phone: phone,
+                    delivery_address: address,
+                    delivery_instructions: instructions,
+                    items: JSON.stringify(cart),
+                    subtotal: subtotal,
+                    tax: tax,
+                    delivery_fee: delivery,
+                    total: total,
+                    payment_method: paymentMethod,
+                    payment_status: paymentStatus,
+                    payment_intent_id: paymentIntentId,
+                    order_status: 'pending',
+                    verification_code: null
+                };
+
+                const res = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                const responseData = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(responseData.error || 'Failed to place order');
+                }
+
+                // Record payment in payments table
+                await fetch('/api/payments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: responseData.order.id,
+                        customer_name: fullName,
+                        amount: total,
+                        payment_method: paymentMethod,
+                        payment_status: paymentStatus,
+                        payment_intent_id: paymentIntentId,
+                        payment_method_details: paymentMethodDetails
+                    })
+                });
+
+                // Append this new order ID to guestOrders so they can track it
+                if (!currentUser.id) {
+                    let guestOrders = JSON.parse(localStorage.getItem('guestOrders')) || [];
+                    guestOrders.push(responseData.order.id);
+                    localStorage.setItem('guestOrders', JSON.stringify(guestOrders));
+                }
+
+                // Clear cart from localStorage
+                localStorage.removeItem('cart');
+
+                // Clear cart from database if user is logged in
+                if (currentUser && currentUser.id && authToken) {
+                    try {
+                        await fetch('/api/user/cart', {
+                            method: 'DELETE',
+                            headers: getAuthHeaders()
+                        });
+                    } catch (error) {
+                        console.error('Error clearing database cart:', error);
+                    }
+                }
+
+                // Show success modal
+                loadingOverlay.classList.remove('show');
+                const successMessage = selectedPayment === 'card'
+                    ? `Your order <b>#${responseData.order.id}</b> has been paid and is being prepared.`
+                    : `Your order <b>#${responseData.order.id}</b> is being prepared.<br>Pay when you receive your order.`;
+
+                showModal(
+                    'Order Placed!',
+                    successMessage + '<br>Track its status in your dashboard.',
+                    '🎉',
+                    () => { window.location.href = 'orders.html'; },
+                    'Track Order'
+                );
+
+            } catch (error) {
+                loadingOverlay.classList.remove('show');
+                showModal('Order Failed', error.message, '❌');
+                console.error('Order error:', error);
+            }
+        });
+
+        // --- LOCATION DETECTION ---
+        let detectedCoordinates = null;
+
+        async function detectUserLocation() {
+            const btn = document.getElementById('detectLocationBtn');
+            const addressField = document.getElementById('address');
+
+            if (!navigator.geolocation) {
+                showModal('Location Not Supported', 'Your browser does not support geolocation.', '📍');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                Detecting location...
+            `;
+
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+
+                const { latitude, longitude } = position.coords;
+                detectedCoordinates = { latitude, longitude };
+                console.log('Location detected:', latitude, longitude);
+
+                // Use OpenStreetMap Nominatim for reverse geocoding (free, no API key required)
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+                    {
+                        headers: {
+                            'User-Agent': 'EmpsOven-Bakery-App'
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to get address from coordinates');
+                }
+
+                const data = await response.json();
+                console.log('Reverse geocode result:', data);
+
+                if (data.display_name) {
+                    // Format address from components
+                    const addr = data.address;
+                    let formattedAddress = '';
+
+                    if (addr.house_number || addr.road) {
+                        formattedAddress += `${addr.house_number || ''} ${addr.road || ''}`.trim() + '\n';
+                    }
+                    if (addr.suburb || addr.neighbourhood) {
+                        formattedAddress += `${addr.suburb || addr.neighbourhood}\n`;
+                    }
+                    if (addr.city || addr.town || addr.village) {
+                        formattedAddress += `${addr.city || addr.town || addr.village}, `;
+                    }
+                    if (addr.state) {
+                        formattedAddress += `${addr.state} `;
+                    }
+                    if (addr.postcode) {
+                        formattedAddress += addr.postcode;
+                    }
+
+                    addressField.value = formattedAddress.trim() || data.display_name;
+
+                    // Calculate delivery time based on detected location
+                    calculateDeliveryTime(latitude, longitude);
+
+                    btn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        Location Detected
+                    `;
+                    btn.style.background = 'linear-gradient(135deg, #48BB78 0%, #38A169 100%)';
+
+                    setTimeout(() => {
+                        btn.innerHTML = `
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            Detect My Location
+                        `;
+                        btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error('Could not determine address');
+                }
+
+            } catch (error) {
+                console.error('Location detection error:', error);
+
+                let errorMsg = 'Failed to detect location. ';
+                if (error.code === 1) {
+                    errorMsg += 'Please enable location permissions in your browser.';
+                } else if (error.code === 2) {
+                    errorMsg += 'Location information is unavailable.';
+                } else if (error.code === 3) {
+                    errorMsg += 'Location request timed out.';
+                } else {
+                    errorMsg += 'Please enter your address manually.';
+                }
+
+                showModal('Location Detection Failed', errorMsg, '📍');
+
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    Detect My Location
+                `;
+                btn.disabled = false;
+            }
+        }
+
+        // --- DELIVERY TIME ESTIMATION ---
+        const BUSINESS_LOCATION = { latitude: 40.7128, longitude: -74.0060 }; // Default: New York, NY - Replace with actual bakery location
+
+        // Calculate delivery time based on distance
+        function calculateDeliveryTime(lat, lon) {
+            const deliveryDisplay = document.getElementById('estimatedDelivery');
+
+            // Calculate distance using Haversine formula (approximate km)
+            const R = 6371; // Earth's radius in km
+            const dLat = toRad(lat - BUSINESS_LOCATION.latitude);
+            const dLon = toRad(lon - BUSINESS_LOCATION.longitude);
+
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(toRad(BUSINESS_LOCATION.latitude)) * Math.cos(toRad(lat)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c; // Distance in km
+
+            console.log('Distance to delivery location:', distance.toFixed(2), 'km');
+
+            // Calculate delivery time
+            // Preparation time: 15-25 minutes
+            // Travel time: 3 minutes per km (average speed ~20 km/h in city)
+            const preparationTime = 20; // minutes
+            const travelTime = Math.ceil(distance * 3); // 3 min per km
+            const totalTime = preparationTime + travelTime;
+
+            // Create time estimate window (e.g., "30-40 min")
+            const minTime = Math.max(25, totalTime - 5);
+            const maxTime = totalTime + 10;
+
+            deliveryDisplay.textContent = `${minTime}-${maxTime} min`;
+            deliveryDisplay.style.color = distance < 5 ? '#48BB78' : (distance < 10 ? '#285742' : '#ED8936');
+        }
+
+        function toRad(degrees) {
+            return degrees * Math.PI / 180;
+        }
+
+        // Listen for address changes to update delivery time estimate
+        document.getElementById('address')?.addEventListener('blur', async function () {
+            const address = this.value.trim();
+            if (address && !detectedCoordinates) {
+                // Try to geocode the manually entered address
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+                        {
+                            headers: {
+                                'User-Agent': 'EmpsOven-Bakery-App'
+                            }
+                        }
+                    );
+
+                    if (response.ok) {
+                        const results = await response.json();
+                        if (results.length > 0) {
+                            const { lat, lon } = results[0];
+                            calculateDeliveryTime(parseFloat(lat), parseFloat(lon));
+                        }
+                    }
+                } catch (error) {
+                    console.log('Could not estimate delivery time for manual address');
+                    document.getElementById('estimatedDelivery').textContent = '30-45 min';
+                }
+            }
+        });
+
+        // Initialize
+        checkAuth().then(isAuth => {
+            if (isAuth) {
+                loadOrderSummary();
+                initStripe();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,3178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rider Dashboard - EmpsOven</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+    </script>
+
+    <style>
+        :root {
+            --sidebar-bg: #ffffff;
+            --bg-color: #f4f7fe;
+            --card-bg: #ffffff;
+            --text-main: #1a202c;
+            --text-muted: #718096;
+            --primary: #4318FF;
+            --success: #285742;
+            --warning: #FFCE20;
+            --danger: #EE5D50;
+            --border: #cfcfcf;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+            height: calc(100vh - 20px);
+            margin: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo-container {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .sidebar-menu {
+            padding: 0 20px 20px 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .menu-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #a0aec0;
+            margin-bottom: 15px;
+            padding-left: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            gap: 12px;
+        }
+
+        .nav-item.active {
+            background-color: #285742;
+            color: white;
+        }
+
+        .nav-item:not(.active):hover {
+            background-color: #f8fafc;
+            color: var(--text-main);
+        }
+
+        .nav-item.logout {
+            margin-top: auto;
+            margin-bottom: 30px;
+            border-top: 1px solid var(--border);
+            border-radius: 0;
+            padding-top: 20px;
+            color: var(--text-muted);
+        }
+
+        .nav-item.logout:hover {
+            background: none;
+            color: var(--text-main);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-left h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .header-left p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 6px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .profile-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #EBF4FF;
+            color: #3182CE;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-info span.name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        .profile-info span.role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Badge/UI elements */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 70px;
+        }
+
+        .badge.received {
+            background: #EBF8FF;
+            color: #3182CE;
+        }
+
+        .badge.pending {
+            background: #fafac2;
+            color: #D69E2E;
+        }
+
+        .badge.on-the-way {
+            background: #EBF4FF;
+            color: #285742;
+        }
+
+        .badge.completed {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .badge.cancel {
+            background: #FFF5F5;
+            color: #E53E3E;
+        }
+
+        .badge.assigned {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .badge.on_the_way {
+            background: #EBF4FF;
+            color: #285742;
+        }
+
+        /* Stat Cards */
+        .beige-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .beige-card {
+            background: #315141;
+            /* Darker green matching admin */
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            color: #ffffff;
+        }
+
+        .bc-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bc-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bc-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .bc-date {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 2px;
+        }
+
+        .bc-main {
+            margin-top: 0px;
+        }
+
+        .bc-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            color: #ffffff;
+        }
+
+        .bc-val {
+            font-size: 38px;
+            font-weight: 500;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Order Cards Styling specific to Rider */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .order-card-rider {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .ocr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 10px;
+        }
+
+        .ocr-id {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .ocr-detail-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .ocr-icon {
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Custom Select */
+        .custom-select {
+            position: relative;
+            min-width: 140px;
+            font-size: 13px;
+            color: var(--text-main);
+            user-select: none;
+        }
+
+        .cs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            gap: 10px;
+        }
+
+        .cs-header:hover {
+            border-color: #cbd5e1;
+        }
+
+        .cs-options {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            width: 100%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 5px 0;
+        }
+
+        .cs-options.show {
+            display: flex;
+        }
+
+        .cs-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 15px;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .cs-option:hover {
+            background: #f8fafc;
+        }
+
+        .cs-option .cs-check {
+            opacity: 0;
+        }
+
+        .cs-option.active .cs-check {
+            opacity: 1;
+        }
+
+        .ocr-text-block {
+            flex: 1;
+        }
+
+        .ocr-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .ocr-val {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .ocr-items {
+            background: var(--bg-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .ocr-actions {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-r-primary {
+            background: #285742;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-r-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-r-success {
+            background: #3182CE;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-r-success:hover {
+            opacity: 0.9;
+        }
+
+        .btn-r-map {
+            background: #EBF4FF;
+            color: #3182CE;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .pin-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pin-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            outline: none;
+        }
+
+        .pin-input:focus {
+            border-color: #3182CE;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9999;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.success {
+            background: #059669;
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 20px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* PIN Verification Animations */
+        @keyframes pinSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pinScaleIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pinShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-6px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(6px);
+            }
+        }
+
+        .pin-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: pinSpin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+
+        .pin-result-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            animation: pinScaleIn 0.4s ease-out forwards;
+        }
+
+        .pin-result-icon.success {
+            background: #48BB78;
+            color: white;
+        }
+
+        .pin-result-icon.error {
+            background: #E53E3E;
+            color: white;
+        }
+
+        .pin-feedback {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .pin-feedback.success {
+            background: #F0FFF4;
+            color: #276749;
+            border: 1px solid #C6F6D5;
+        }
+
+        .pin-feedback.error {
+            background: #FFF5F5;
+            color: #C53030;
+            border: 1px solid #FED7D7;
+            animation: pinShake 0.4s ease-out;
+        }
+
+        .pin-input.shake {
+            animation: pinShake 0.4s ease-out;
+            border-color: #E53E3E !important;
+        }
+
+        .pin-input.success-border {
+            border-color: #48BB78 !important;
+        }
+
+        /* Rider Order Specific Modal */
+        .rider-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            padding: 20px;
+        }
+
+        .rider-modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .rider-modal-content {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 16px;
+            padding: 24px;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .rider-modal-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .rider-modal-overlay.show .rider-modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .rm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .rm-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .rm-detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .rm-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .rm-val {
+            color: var(--text-main);
+            font-weight: 600;
+            text-align: right;
+            max-width: 65%;
+        }
+
+        .rm-items-box {
+            background: var(--bg-color);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-main);
+            margin-top: 5px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .rm-actions {
+            margin-top: 25px;
+        }
+
+        /* Map Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            animation: fadeIn 0.2s;
+        }
+
+        .map-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        #mapContainer {
+            width: 100%;
+            height: 400px;
+            background: #e2e8f0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .beige-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                right: -280px;
+                left: auto;
+                top: 0;
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+                z-index: 2000;
+                transition: right 0.3s ease;
+                box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar.show {
+                right: 0;
+                left: auto;
+            }
+
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1500;
+            }
+
+            .mobile-overlay.show {
+                display: block;
+            }
+
+            .menu-toggle {
+                display: flex !important;
+                flex-direction: column;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 46px;
+                height: 46px;
+                background-color: #ffffff !important;
+                border-radius: 50% !important;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                z-index: 2100;
+                border: none;
+                cursor: pointer;
+            }
+
+            .css-hamburger {
+                width: 20px;
+                height: 2px;
+                background-color: #1a1a1a;
+                border-radius: 2px;
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .css-hamburger::before,
+            .css-hamburger::after {
+                content: '';
+                display: block;
+                width: 20px;
+                height: 2px;
+                background-color: #1a1a1a;
+                border-radius: 2px;
+                position: absolute;
+                transition: all 0.3s ease;
+                left: 0;
+            }
+
+            .css-hamburger::before {
+                top: -6px;
+            }
+
+            .css-hamburger::after {
+                top: 6px;
+                display: none;
+                /* Hide the third line to match screenshot */
+            }
+
+            body.sidebar-open .menu-toggle {
+                display: none !important;
+            }
+
+            .beige-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+
+            .beige-card {
+                padding: 15px !important;
+                gap: 15px !important;
+            }
+
+            .bc-label {
+                font-size: 13px !important;
+            }
+
+            .bc-val {
+                font-size: 28px !important;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+                margin-top: 45px;
+                /* Room for hamburger */
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .modal-overlay {
+                padding: 15px;
+            }
+
+            .rider-modal-content {
+                padding: 20px;
+                max-width: calc(100% - 30px);
+                max-height: calc(100% - 30px);
+                border-radius: 12px;
+            }
+
+            .chart-card {
+                padding: 15px;
+            }
+
+            .chart-title {
+                font-size: 16px !important;
+            }
+
+            .order-card-rider {
+                padding: 15px !important;
+            }
+
+            .ocr-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .ocr-id {
+                font-size: 16px !important;
+            }
+
+            .btn-r-primary {
+                font-size: 14px !important;
+                padding: 10px 16px !important;
+            }
+
+            .orders-list {
+                gap: 12px !important;
+            }
+
+            .nav-item.logout {
+                margin-top: 20px !important;
+                margin-bottom: 20px !important;
+                padding-top: 15px !important;
+                padding-bottom: 15px !important;
+            }
+
+            /* History filter responsive */
+            .history-filters {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .history-filters .search-box,
+            .history-filters .custom-select {
+                width: 100% !important;
+                min-width: unset !important;
+            }
+
+            /* Map modal responsive */
+            .map-modal-content {
+                max-width: calc(100% - 30px);
+                max-height: calc(100% - 30px);
+                border-radius: 12px;
+            }
+
+            #mapContainer {
+                height: 300px;
+            }
+
+            /* Assignment popup responsive */
+            .assignment-popup {
+                max-width: calc(100% - 30px) !important;
+                padding: 20px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 10px;
+            }
+
+            .header {
+                margin-top: 50px;
+                gap: 10px;
+            }
+
+            .header-left h1 {
+                font-size: 18px;
+            }
+
+            .header-left p {
+                font-size: 12px;
+            }
+
+            .header-right {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .profile-info .name {
+                font-size: 12px !important;
+            }
+
+            .profile-info .role {
+                font-size: 10px !important;
+            }
+
+            .status-toggle-wrapper {
+                padding: 4px 10px;
+            }
+
+            .status-toggle-label {
+                font-size: 11px !important;
+            }
+
+            .beige-grid {
+                gap: 10px !important;
+            }
+
+            .beige-card {
+                padding: 12px !important;
+                gap: 10px !important;
+                border-radius: 10px !important;
+            }
+
+            .bc-icon {
+                width: 30px !important;
+                height: 30px !important;
+            }
+
+            .bc-title {
+                font-size: 13px !important;
+            }
+
+            .bc-val {
+                font-size: 24px !important;
+            }
+
+            .bc-label {
+                font-size: 12px !important;
+            }
+
+            .chart-card {
+                padding: 12px;
+                border-radius: 12px;
+            }
+
+            .chart-title {
+                font-size: 14px !important;
+            }
+
+            .order-card-rider {
+                padding: 12px !important;
+                border-radius: 10px !important;
+            }
+
+            .ocr-header {
+                gap: 8px;
+            }
+
+            .ocr-id {
+                font-size: 14px !important;
+            }
+
+            .ocr-info {
+                font-size: 12px !important;
+            }
+
+            .btn-r-primary,
+            .btn-r-map {
+                font-size: 13px !important;
+                padding: 8px 14px !important;
+            }
+
+            .rider-modal-content {
+                padding: 16px;
+                border-radius: 12px;
+                max-height: calc(100vh - 20px);
+            }
+
+            .rm-header {
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+            }
+
+            .rm-title {
+                font-size: 16px;
+            }
+
+            .rm-detail-row {
+                padding: 8px 0;
+            }
+
+            .rm-label {
+                font-size: 12px;
+            }
+
+            .rm-val {
+                font-size: 13px;
+            }
+
+            .pin-container {
+                flex-direction: column !important;
+            }
+
+            .pin-input {
+                width: 100% !important;
+            }
+
+            .pin-result-icon {
+                width: 44px;
+                height: 44px;
+            }
+
+            .pin-feedback {
+                font-size: 13px;
+                padding: 12px;
+            }
+
+            /* Notification adjustments */
+            .notification {
+                font-size: 13px !important;
+                padding: 12px 16px !important;
+                left: 10px !important;
+                right: 10px !important;
+                max-width: unset !important;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+        }
+
+        /* Notification Settings Styles */
+        .settings-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            margin-bottom: 20px;
+        }
+
+        .settings-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 3px;
+        }
+
+        .setting-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .notif-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .notif-status-badge.enabled {
+            background: #F0FFF4;
+            color: #276749;
+        }
+
+        .notif-status-badge.disabled {
+            background: #FFF5F5;
+            color: #C53030;
+        }
+
+        .notif-status-badge.unsupported {
+            background: #FFFAF0;
+            color: #C05621;
+        }
+
+        .btn-notif {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-notif.enable {
+            background: #285742;
+            color: white;
+        }
+
+        .btn-notif.enable:hover {
+            background: #1e4433;
+        }
+
+        .btn-notif.disable {
+            background: #FFF5F5;
+            color: #C53030;
+            border: 1px solid #FED7D7;
+        }
+
+        .btn-notif.disable:hover {
+            background: #FED7D7;
+        }
+
+        .notif-test-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .notif-test-btn:hover {
+            background: #f8f9fa;
+        }
+
+        /* Online/Offline Toggle */
+        .status-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1px solid #cfcfcf;
+            padding: 6px 14px;
+            border-radius: 8px;
+        }
+
+        .status-toggle-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .status-toggle-label.online {
+            color: #16a34a;
+        }
+
+        .status-toggle-label.offline {
+            color: #dc2626;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: #ccc;
+            border-radius: 24px;
+            transition: background 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: #16a34a;
+        }
+
+        .toggle-switch input:checked+.toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        /* Assignment Popup */
+        .assignment-popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 5000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .assignment-popup-overlay.show {
+            display: flex;
+        }
+
+        .assignment-popup {
+            background: white;
+            border-radius: 16px;
+            max-width: 420px;
+            width: 100%;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ap-icon {
+            width: 60px;
+            height: 60px;
+            background: #f0fdf4;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            color: #16a34a;
+        }
+
+        .ap-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+
+        .ap-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .ap-details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .ap-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+
+        .ap-detail-row .label {
+            color: #666;
+        }
+
+        .ap-detail-row .value {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .ap-countdown {
+            font-size: 28px;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 20px;
+        }
+
+        .ap-countdown-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .ap-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .ap-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ap-btn.accept {
+            background: #16a34a;
+            color: white;
+        }
+
+        .ap-btn.accept:hover {
+            background: #15803d;
+        }
+
+        .ap-btn.reject {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .ap-btn.reject:hover {
+            background: #fecaca;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" onclick="toggleMobileMenu()">
+        <div class="css-hamburger"></div>
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" onclick="closeMobileMenu()"></div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <div class="logo">
+                <i data-lucide="bikel" color="#285742"></i> EmpsOven
+            </div>
+            <span class="logo-sub">Rider Portal</span>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-label">MENU</div>
+            <a href="#" class="nav-item active" onclick="switchView('new_requests')">
+                <i data-lucide="bell" width="18" height="18"></i> New Requests
+            </a>
+            <a href="#" class="nav-item" onclick="switchView('active_delivery')">
+                <i data-lucide="bike" width="18" height="18"></i> Active Delivery
+            </a>
+            <a href="#" class="nav-item" onclick="switchView('history')">
+                <i data-lucide="history" width="18" height="18"></i> History
+            </a>
+            <a href="#" class="nav-item" onclick="switchView('settings')">
+                <i data-lucide="settings" width="18" height="18"></i> Settings
+            </a>
+
+            <a href="#" class="nav-item logout" onclick="logout()">
+                <i data-lucide="log-out" width="18" height="18"></i> Sign Out
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <h1 id="pageTitle">Overview</h1>
+                <p id="pageSubtitle">Rider Dashboard overview.</p>
+            </div>
+            <div class="header-right">
+                <!-- Online/Offline Toggle -->
+                <div class="status-toggle-wrapper" id="statusToggleWrapper">
+                    <span class="status-toggle-label offline" id="statusLabel">Offline</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="riderStatusToggle" onchange="toggleRiderStatus()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <button onclick="fetchAssignedOrders()"
+                    style="background:white; border:1px solid #cfcfcf; padding:8px 12px; border-radius:8px; display:flex; gap:6px; cursor:pointer; align-items:center; font-weight:600;">
+                    <i data-lucide="refresh-cw" width="14" height="14"></i> Refresh
+                </button>
+                </button>
+                <div class="profile">
+                    <div class="profile-icon"><i data-lucide="user" width="16" height="16"></i></div>
+                    <div class="profile-info">
+                        <span class="name" id="riderNameDisplay">Rider</span>
+                        <span class="role">Delivery Partner</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: NEW REQUESTS -->
+        <div id="view-new_requests" class="view-section active">
+            <div class="chart-card">
+                <div class="chart-title">
+                    <span>New Delivery Assignments</span>
+                </div>
+                <div id="newRequestsContainer" class="orders-list">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: ACTIVE DELIVERY -->
+        <div id="view-active_delivery" class="view-section">
+            <div class="beige-grid">
+                <!-- Stat Cards -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="bike"></i></div>
+                        <div>
+                            <div class="bc-title">Active Deliveries</div>
+                            <div class="bc-date">Currently On Route</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Pending:</div>
+                        <div class="bc-val" id="stat_active">0</div>
+                    </div>
+                </div>
+                <!-- Completed Deliveries -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="check-circle"></i></div>
+                        <div>
+                            <div class="bc-title">Total Completed</div>
+                            <div class="bc-date">All Time</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Completed:</div>
+                        <div class="bc-val" id="stat_completed">0</div>
+                    </div>
+                </div>
+                <!-- Total Earnings -->
+                <div class="beige-card">
+                    <div class="bc-header">
+                        <div class="bc-icon"><i data-lucide="dollar-sign"></i></div>
+                        <div>
+                            <div class="bc-title">Total Value Handled</div>
+                            <div class="bc-date">All Time</div>
+                        </div>
+                    </div>
+                    <div class="bc-main">
+                        <div class="bc-label">Earnings approx.</div>
+                        <div class="bc-val" id="stat_earnings">$0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Orders List -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <span>Active Deliveries List</span>
+                </div>
+                <div id="activeOrdersContainer" class="orders-list">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: HISTORY -->
+        <div id="view-history" class="view-section">
+
+            <!-- Search and Filter Bar -->
+            <div
+                style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 12px 15px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); flex-wrap: wrap; max-width: 100%;">
+                <div style="flex: 1; min-width: 200px; position: relative;">
+                    <div
+                        style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #718096; display: flex; align-items: center;">
+                        <i data-lucide="search" width="16" height="16"></i>
+                    </div>
+                    <input type="text" id="historySearchInput" placeholder="Search orders by ID..."
+                        style="width: 100%; padding: 10px 10px 10px 38px; background: #f8fafc; border: none; border-radius: 8px; font-size: 13px; outline: none; transition: all 0.2s;"
+                        onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                        oninput="filterHistoryOrders()">
+                </div>
+                <div style="width: 130px; flex-shrink: 0; position: relative;">
+                    <div class="custom-select" id="csHistoryStatus" data-value="all">
+                        <div class="cs-header" onclick="toggleCustomSelect(this)">
+                            <span class="cs-text">All Status</span>
+                            <i data-lucide="chevron-down" width="16" height="16" color="#64748b"></i>
+                        </div>
+                        <div class="cs-options">
+                            <div class="cs-option active" data-value="all" onclick="selectHistoryStatus(this)">
+                                <span>All Status</span>
+                                <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                            </div>
+                            <div class="cs-option" data-value="Pending" onclick="selectHistoryStatus(this)">
+                                <span>Pending</span>
+                                <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                            </div>
+                            <div class="cs-option" data-value="Received" onclick="selectHistoryStatus(this)">
+                                <span>Received</span>
+                                <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                            </div>
+                            <div class="cs-option" data-value="Assigned" onclick="selectHistoryStatus(this)">
+                                <span>Assigned</span>
+                                <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                            </div>
+                            <div class="cs-option" data-value="on_the_way" onclick="selectHistoryStatus(this)">
+                                <span>On the Way</span>
+                                <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                            </div>
+                            <div class="cs-option" data-value="Re-assign" onclick="selectHistoryStatus(this)">
+                                <span>Re-assign</span>
+                                <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                            </div>
+                            <div class="cs-option" data-value="Completed" onclick="selectHistoryStatus(this)">
+                                <span>Completed</span>
+                                <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                            </div>
+                            <div class="cs-option" data-value="Cancel" onclick="selectHistoryStatus(this)">
+                                <span>Cancel</span>
+                                <i data-lucide="check" class="cs-check" width="16" height="16"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">
+                    <span>Delivery History</span>
+                </div>
+
+                <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
+                    <span id="historyResultCount">0</span> deliveries found
+                </div>
+
+                <div id="historyOrdersContainer" class="orders-list">
+                    <!-- Cards will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: SETTINGS -->
+        <div id="view-settings" class="view-section">
+            <div class="settings-card">
+                <div class="settings-card-title">
+                    <i data-lucide="bell" width="20" height="20" style="color:#285742;"></i>
+                    Push Notifications
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">Notification Status</div>
+                        <div class="setting-desc">Current state of push notifications on this device.</div>
+                    </div>
+                    <span class="notif-status-badge disabled" id="notifStatusBadge">
+                        <i data-lucide="bell-off" width="14" height="14"></i>
+                        <span id="notifStatusText">Checking...</span>
+                    </span>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">Order Assignment Alerts</div>
+                        <div class="setting-desc">Get notified instantly when a new delivery is assigned to you, even
+                            when you're not on this page.</div>
+                    </div>
+                    <div id="notifActionArea">
+                        <button class="btn-notif enable" id="notifToggleBtn" onclick="toggleNotifications()">
+                            <i data-lucide="bell-ring" width="16" height="16"></i>
+                            <span id="notifToggleBtnText">Enable</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="setting-row" id="notifTestRow" style="display:none;">
+                    <div class="setting-info">
+                        <div class="setting-label">Test Notification</div>
+                        <div class="setting-desc">Send yourself a test push notification to confirm everything works.
+                        </div>
+                    </div>
+                    <button class="notif-test-btn" onclick="sendTestNotification()">
+                        <i data-lucide="send" width="14" height="14"></i> Send Test
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-card-title">
+                    <i data-lucide="info" width="20" height="20" style="color:#3182CE;"></i>
+                    How It Works
+                </div>
+                <div style="color: var(--text-muted); font-size: 13px; line-height: 1.7;">
+                    <p style="margin-bottom:10px;">When notifications are enabled, you'll receive an alert on your
+                        device whenever:</p>
+                    <ul style="padding-left:20px; margin-bottom:10px;">
+                        <li>A new delivery order is assigned to you</li>
+                        <li>An assignment is about to expire</li>
+                    </ul>
+                    <p style="margin-bottom:10px;">This works even when you've closed the rider dashboard, as long as
+                        your browser supports push notifications.</p>
+                    <p style="color: var(--text-main); font-weight: 600;">
+                        <i data-lucide="alert-circle" width="14" height="14"
+                            style="display:inline; vertical-align:middle;"></i>
+                        If you denied notifications by mistake, you'll need to allow them in your browser settings for
+                        this site.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">Message</div>
+
+    <!-- Map Modal -->
+    <div id="mapModal" class="modal-overlay">
+        <div class="map-modal-content">
+            <div class="map-modal-header">
+                <span>Delivery Location</span>
+                <i data-lucide="x" style="cursor:pointer;" onclick="closeMapModal()"></i>
+            </div>
+            <div id="mapContainer"></div>
+        </div>
+    </div>
+
+    <!-- Rider Order Details Modal -->
+    <div id="riderOrderModal" class="rider-modal-overlay">
+        <div class="rider-modal-content">
+            <div class="rm-header">
+                <span class="rm-title" id="romTitle">Order Details</span>
+                <i data-lucide="x" style="cursor:pointer; color:var(--text-muted);" onclick="closeRiderModal()"></i>
+            </div>
+
+            <div class="rm-detail-row">
+                <span class="rm-label">Order ID</span>
+                <span class="rm-val" id="romId">#0</span>
+            </div>
+
+            <div class="rm-detail-row">
+                <span class="rm-label">Customer</span>
+                <span class="rm-val" id="romCustomer">-</span>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <span class="rm-label" style="font-size: 14px;">Items</span>
+                <div class="rm-items-box" id="romItems">-</div>
+            </div>
+
+            <div class="rm-detail-row">
+                <span class="rm-label">Delivery Address</span>
+                <span class="rm-val" id="romAddress" style="color:#3182CE; cursor:pointer;">-</span>
+            </div>
+
+            <div class="rm-detail-row" style="border-top: 1px dashed var(--border); padding-top: 15px;">
+                <span class="rm-label" style="font-size:16px; color:var(--text-main);">Total Collectible</span>
+                <span class="rm-val" id="romPrice" style="font-size:16px; color:#285742;">$0.00</span>
+            </div>
+
+            <div class="rm-actions" id="romActions">
+                <!-- Dynamic Actions Injected Here (Accept, Call, Pin, etc) -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://kkkildlldjhttipywybz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtra2lsZGxsZGpodHRpcHl3eWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDA5OTcsImV4cCI6MjA4NzQxNjk5N30.1XFow3JeDfxan06H5c925a5xj-LSoNY0HijEvWuZpLg';
+        let supabaseClient = null;
+
+        // --- AUTH CHECK ---
+        const token = sessionStorage.getItem('riderToken');
+        const riderName = sessionStorage.getItem('riderName');
+        const authType = sessionStorage.getItem('riderAuthType');
+        const riderAvatar = sessionStorage.getItem('riderAvatar');
+
+        // Check authentication
+        if (authType === 'google') {
+            // Google OAuth authentication
+            const sessionData = sessionStorage.getItem('riderSupabaseSession');
+            if (!sessionData) {
+                window.location.href = '/rider-login.html';
+            } else {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                // Restore Supabase session
+                const session = JSON.parse(sessionData);
+                supabaseClient.auth.setSession(session);
+            }
+        } else {
+            // Traditional token-based authentication
+            if (!token) {
+                window.location.href = '/rider-login.html';
+            }
+        }
+
+        // Display rider profile
+        if (riderName) {
+            document.getElementById('riderNameDisplay').textContent = riderName;
+        }
+
+        // Add profile picture if available
+        if (riderAvatar && riderAvatar !== '') {
+            const profileIcon = document.querySelector('.profile-icon');
+            profileIcon.innerHTML = `<img src="${riderAvatar}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        }
+
+        const getAuthHeaders = () => ({
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        });
+
+        async function logout() {
+            // Handle Google OAuth logout
+            if (authType === 'google' && supabaseClient) {
+                await supabaseClient.auth.signOut();
+                sessionStorage.removeItem('riderSupabaseSession');
+            }
+
+            // Clear all session data
+            sessionStorage.removeItem('riderToken');
+            sessionStorage.removeItem('riderName');
+            sessionStorage.removeItem('riderEmail');
+            sessionStorage.removeItem('riderAvatar');
+            sessionStorage.removeItem('riderAuthType');
+            sessionStorage.removeItem('riderAvailable');
+
+            window.location.href = '/rider-login.html';
+        }
+
+        function showNotification(msg, type = '') {
+            const notif = document.getElementById('notification');
+            notif.textContent = msg;
+            notif.className = `notification show ${type}`;
+            setTimeout(() => { notif.classList.remove('show'); }, 3000);
+        }
+
+        // --- UI SWITCHING ---
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('view-' + viewName).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            const titles = { 'new_requests': 'New Requests', 'active_delivery': 'Active Delivery', 'history': 'Delivery History', 'settings': 'Settings' };
+            const subtitles = {
+                'new_requests': 'Review and accept new delivery assignments.',
+                'active_delivery': 'Manage deliveries currently in progress.',
+                'history': 'Review your completed deliveries.',
+                'settings': 'Manage your notification preferences.'
+            };
+            document.getElementById('pageTitle').textContent = titles[viewName];
+            document.getElementById('pageSubtitle').textContent = subtitles[viewName];
+
+            // Close mobile menu when view is switched
+            closeMobileMenu();
+        }
+
+        // --- MOBILE MENU ---
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            const body = document.body;
+
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+            body.classList.toggle('sidebar-open');
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            const body = document.body;
+
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            body.classList.remove('sidebar-open');
+        }
+
+        // --- MAP LOGIC ---
+        let mapInstance = null;
+        let mapMarker = null;
+
+        function openMapModal(address) {
+            document.getElementById('mapModal').classList.add('show');
+
+            // Re-render map safely inside modal
+            if (!mapInstance) {
+                mapInstance = L.map('mapContainer').setView([51.505, -0.09], 13); // Default view
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(mapInstance);
+            }
+
+            // We use Nominatim OpenStreetMap Geocoding API to find address coords
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = data[0].lat;
+                        const lon = data[0].lon;
+
+                        mapInstance.setView([lat, lon], 15);
+
+                        if (mapMarker) {
+                            mapMarker.setLatLng([lat, lon]);
+                        } else {
+                            mapMarker = L.marker([lat, lon]).addTo(mapInstance);
+                        }
+                        mapMarker.bindPopup(`<b>Delivery Address</b><br>${address}`).openPopup();
+                    } else {
+                        showNotification("Address not found exactly on Map.", "error");
+                    }
+                    setTimeout(() => { mapInstance.invalidateSize(); }, 200);
+                }).catch(e => {
+                    console.error("Geocoding failed", e);
+                });
+
+            setTimeout(() => { mapInstance.invalidateSize(); }, 200);
+        }
+
+        function closeMapModal() {
+            document.getElementById('mapModal').classList.remove('show');
+        }
+
+        // --- DATA FETCHING ---
+        let allOrders = [];
+        let allHistoryOrders = []; // Store original history for filtering
+
+        async function fetchAssignedOrders() {
+            try {
+                const res = await fetch("/api/rider/orders", { headers: getAuthHeaders() });
+
+                if (res.status === 401 || res.status === 403) {
+                    logout();
+                    return;
+                }
+
+                if (!res.ok) {
+                    console.error("Failed to fetch orders, status:", res.status);
+                    return;
+                }
+
+                const responseData = await res.json();
+                allOrders = Array.isArray(responseData) ? responseData : [];
+                processOrders();
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+                document.getElementById('activeOrdersContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="alert-circle" class="empty-icon" width="48" height="48" style="color:var(--error);"></i>
+                        <p style="color:var(--text-main); font-weight:600; font-size:16px;">Connection Error</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function processOrders() {
+            const newRequests = [];
+            const activeOrders = [];
+            const historyOrders = [];
+            let activeCount = 0;
+            let completedCount = 0;
+            let totalEarnings = 0;
+
+            console.log('Processing orders:', allOrders.length, 'total orders');
+
+            allOrders.forEach(o => {
+                console.log(`Order #${o.id} status: ${o.order_status}`);
+
+                // New requests include 'assigned' and 'reassign' status
+                if (o.order_status === 'assigned' || o.order_status === 'reassign' || o.order_status === 'reassigning') {
+                    newRequests.push(o);
+                } else if (o.order_status === 'rider_accepted' || o.order_status === 'on_the_way' || o.order_status === 'ready' || o.order_status === 'on_delivery') {
+                    activeOrders.push(o);
+                    activeCount++;
+                } else if (o.order_status === 'delivered' || o.order_status === 'completed') {
+                    historyOrders.push(o);
+                    completedCount++;
+                    totalEarnings += parseFloat(o.total || 0);
+                }
+                // Cancelled orders are ignored/hidden
+            });
+
+            console.log('Categorized - New:', newRequests.length, 'Active:', activeOrders.length, 'History:', historyOrders.length);
+
+            // Store history globally for filtering
+            allHistoryOrders = historyOrders;
+
+            document.getElementById('stat_active').textContent = activeCount;
+            document.getElementById('stat_completed').textContent = completedCount;
+            document.getElementById('stat_earnings').textContent = '$' + totalEarnings.toFixed(2);
+
+            renderOrdersCards(newRequests, 'newRequestsContainer', 'new_request');
+            renderOrdersCards(activeOrders, 'activeOrdersContainer', 'active');
+            renderOrdersCards(historyOrders, 'historyOrdersContainer', 'history');
+
+            // Update history result count
+            updateHistoryCount(historyOrders.length);
+        }
+
+        function renderOrdersCards(orders, containerId, listType) {
+            const container = document.getElementById(containerId);
+
+            if (!orders || orders.length === 0) {
+                let icon = 'check-circle';
+                let title = 'All Caught Up!';
+                let msg = 'You have no active deliveries assigned.';
+
+                if (listType === 'history') {
+                    icon = 'history'; title = 'No History Yet'; msg = 'Completed deliveries will show here.';
+                } else if (listType === 'new_request') {
+                    icon = 'bell'; title = 'No New Requests'; msg = 'You have no new assigned deliveries.';
+                }
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="${icon}" class="empty-icon" width="48" height="48"></i>
+                        <p style="color:var(--text-main); font-weight:600; font-size:16px;">${title}</p>
+                        <p style="margin-top:5px; font-size:13px;">${msg}</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = '';
+
+            orders.forEach(order => {
+                let displayStatus = order.order_status;
+                let badgeClass = 'received';
+
+                if (order.order_status === 'assigned' || order.order_status === 'reassign') { displayStatus = 'New Assignment'; badgeClass = 'assigned'; }
+                else if (order.order_status === 'on_the_way' || order.order_status === 'on_delivery') { displayStatus = 'On Route'; badgeClass = 'on_the_way'; }
+                else if (order.order_status === 'delivered') { displayStatus = 'Delivered'; badgeClass = 'completed'; }
+                else if (order.order_status === 'completed') { displayStatus = 'Completed'; badgeClass = 'completed'; }
+
+                container.innerHTML += `
+                    <div class="order-card-rider">
+                        <div class="ocr-header">
+                            <div class="ocr-id">#${order.id}</div>
+                            <span class="badge ${badgeClass}">${displayStatus}</span>
+                        </div>
+                        
+                        <div class="ocr-details">
+                            <div class="ocr-detail-row" style="margin-bottom:10px;">
+                                <i data-lucide="user" class="ocr-icon" width="14" height="14"></i>
+                                <div class="ocr-text-block">
+                                    <div class="ocr-label">Customer</div>
+                                    <div class="ocr-val">${order.customer_name || 'Guest'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="ocr-actions">
+                            <button class="btn-r-primary" style="margin-top:0; border-radius: 6px; padding: 10px; background: #285742; width: 100%; cursor: pointer; border: none; color: white; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;" onclick="viewRiderOrder(${order.id})">
+                                <i data-lucide="eye" width="16" height="16"></i> View Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        // --- HISTORY SEARCH & FILTER ---
+        function filterHistoryOrders() {
+            const searchTerm = document.getElementById('historySearchInput').value.toLowerCase().trim();
+            const statusFilterBox = document.getElementById('csHistoryStatus');
+            const statusFilter = statusFilterBox ? statusFilterBox.getAttribute('data-value') : 'all';
+
+            let filtered = allHistoryOrders;
+
+            // Filter by search term (order ID or customer name)
+            if (searchTerm) {
+                filtered = filtered.filter(order => {
+                    const orderId = order.id.toString().toLowerCase();
+                    const customerName = (order.customer_name || '').toLowerCase();
+                    return orderId.includes(searchTerm) || customerName.includes(searchTerm);
+                });
+            }
+
+            // Filter by status (case insensitive match)
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(order => {
+                    return order.order_status && order.order_status.toLowerCase() === statusFilter.toLowerCase();
+                });
+            }
+
+            renderOrdersCards(filtered, 'historyOrdersContainer', 'history');
+            updateHistoryCount(filtered.length);
+        }
+
+        // Custom Select Logic
+        function toggleCustomSelect(element) {
+            const optionsDiv = element.nextElementSibling;
+            document.querySelectorAll('.cs-options').forEach(opt => {
+                if (opt !== optionsDiv) opt.classList.remove('show');
+            });
+            optionsDiv.classList.toggle('show');
+        }
+
+        function selectHistoryStatus(element) {
+            const value = element.getAttribute('data-value');
+            const text = element.querySelector('span').innerText;
+            const container = element.closest('.custom-select');
+
+            // Update text and value
+            container.querySelector('.cs-text').innerText = text;
+            container.setAttribute('data-value', value);
+
+            // Update active state
+            const options = container.querySelectorAll('.cs-option');
+            options.forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+
+            // Close dropdown
+            container.querySelector('.cs-options').classList.remove('show');
+
+            // Trigger filter
+            filterHistoryOrders();
+        }
+
+        // Click outside to close dropdowns
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.custom-select')) {
+                document.querySelectorAll('.cs-options').forEach(opt => opt.classList.remove('show'));
+            }
+        });
+
+        function updateHistoryCount(count) {
+            const countElement = document.getElementById('historyResultCount');
+            if (countElement) {
+                countElement.textContent = count;
+            }
+        }
+
+        let currentRiderOrder = null;
+
+        function closeRiderModal() {
+            document.getElementById('riderOrderModal').classList.remove('show');
+        }
+
+        function viewRiderOrder(id) {
+            const order = allOrders.find(o => o.id === id);
+            if (!order) return;
+            currentRiderOrder = order;
+
+            let itemsStr = "Items unavailable";
+            try {
+                const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                itemsStr = items.map(i => `${i.quantity}x ${i.name}`).join(', ');
+            } catch (e) { }
+
+            document.getElementById('romId').textContent = '#' + order.id;
+            document.getElementById('romCustomer').textContent = order.customer_name || 'Guest';
+            document.getElementById('romItems').textContent = itemsStr;
+            document.getElementById('romAddress').textContent = order.delivery_address || 'Not Provided';
+            document.getElementById('romPrice').textContent = '$' + parseFloat(order.total || 0).toFixed(2);
+
+            let actionHtml = '';
+
+            if (order.order_status === 'assigned' || order.order_status === 'reassign') {
+                actionHtml = `
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button class="btn-r-primary" onclick="acceptDelivery(${order.id})">
+                            <i data-lucide="check-circle" width="16" height="16"></i> Accept Delivery
+                        </button>
+                        <button class="btn-r-primary" style="background:#EE5D50;" onclick="cancelDelivery(${order.id})">
+                            <i data-lucide="x-circle" width="16" height="16"></i> Decline Delivery
+                        </button>
+                    </div>
+                `;
+            } else if (order.order_status === 'on_the_way') {
+                const safeAddress = order.delivery_address ? order.delivery_address.replace(/'/g, "\'") : "New York, USA";
+                const phone = order.customer_phone || '';
+
+                actionHtml = `
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        ${phone ? `<a href="tel:${phone}" class="btn-r-primary" style="background:#48BB78; text-decoration:none; text-align:center;">
+                            <i data-lucide="phone" width="16" height="16"></i> Call Customer
+                        </a>` : ''}
+                        
+                        <button class="btn-r-map" style="width:100%; justify-content:center; padding:12px; font-weight:600;" onclick="openMapModal('${safeAddress}')">
+                            <i data-lucide="map" width="16" height="16"></i> View Directions Map
+                        </button>
+
+                        <div style="border-top: 1px solid #e2e8f0; margin: 15px 0;"></div>
+
+                        <label style="font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:5px; display:block;">Enter Delivery Code to Confirm</label>
+                        <div class="pin-container" style="flex-direction:row; gap:10px;">
+                            <input type="text" id="pin-${order.id}" class="pin-input" placeholder="PIN" maxlength="4" autocomplete="off" style="flex:1;">
+                            <button class="btn-r-success" id="pinBtn-${order.id}" style="padding:10px 20px; min-width:110px; transition: all 0.3s;" onclick="verifyDelivery(${order.id})">
+                                Confirm PIN
+                            </button>
+                        </div>
+                        <div id="pinFeedback-${order.id}"></div>
+                    </div>
+                `;
+            } else {
+                actionHtml = `<div style="color:#718096; text-align:center; font-style:italic;">This order is ${order.order_status}.</div>`;
+            }
+
+            document.getElementById('romActions').innerHTML = actionHtml;
+            document.getElementById('riderOrderModal').classList.add('show');
+            lucide.createIcons();
+        }
+
+        // --- ACTIONS ---
+        async function acceptDelivery(orderId) {
+            try {
+                console.log('Accepting delivery:', orderId);
+                const res = await fetch(`/api/rider/accept-order/${orderId}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+
+                const result = await res.json();
+                console.log('Accept response:', result);
+
+                if (res.ok) {
+                    showNotification('Delivery Accepted! Drive safely.', 'success');
+                    closeRiderModal();
+
+                    // Wait for data to be fetched and processed before switching views
+                    console.log('Fetching updated orders...');
+                    await fetchAssignedOrders();
+                    console.log('Orders fetched, switching view...');
+
+                    // Auto-switch to active delivery view after data is loaded
+                    const activeDeliveryNav = document.querySelector('.nav-item[onclick*="active_delivery"]');
+                    if (activeDeliveryNav) {
+                        activeDeliveryNav.click();
+                    }
+                } else {
+                    showNotification('Failed to accept delivery', 'error');
+                }
+            } catch (e) {
+                console.error('Error accepting delivery:', e);
+                showNotification('Network error', 'error');
+            }
+        }
+
+        async function cancelDelivery(orderId) {
+            if (!confirm("Are you sure you want to decline this delivery assignment?")) return;
+
+            try {
+                const res = await fetch(`/api/rider/orders/${orderId}/cancel`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+
+                if (res.ok) {
+                    showNotification('Delivery assignment declined.', 'success');
+                    fetchAssignedOrders();
+                } else {
+                    showNotification('Failed to decline delivery', 'error');
+                }
+            } catch (e) {
+                showNotification('Network error', 'error');
+            }
+        }
+
+        async function verifyDelivery(orderId) {
+            const btn = document.getElementById(`pinBtn-${orderId}`);
+            const pinInput = document.getElementById(`pin-${orderId}`);
+            const feedbackDiv = document.getElementById(`pinFeedback-${orderId}`);
+            const pin = pinInput.value;
+
+            // Clear previous feedback
+            feedbackDiv.innerHTML = '';
+            pinInput.classList.remove('shake', 'success-border');
+
+            if (!pin || pin.length < 4) {
+                pinInput.classList.add('shake');
+                feedbackDiv.innerHTML = `<div class="pin-feedback error">
+                    <div class="pin-result-icon error"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
+                    Please enter the full 4-digit PIN
+                </div>`;
+                setTimeout(() => pinInput.classList.remove('shake'), 500);
+                return;
+            }
+
+            // Show spinner in button
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="pin-spinner"></div>';
+            btn.disabled = true;
+            btn.style.opacity = '0.8';
+
+            try {
+                const res = await fetch(`/api/rider/orders/${orderId}/verify`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ pin: pin })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    // Success animation inside card
+                    pinInput.classList.add('success-border');
+                    btn.style.background = '#48BB78';
+                    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+                    feedbackDiv.innerHTML = `<div class="pin-feedback success">
+                        <div class="pin-result-icon success"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                        Delivery Confirmed Successfully!
+                    </div>`;
+
+                    // Close modal after a brief delay to show the animation
+                    setTimeout(() => {
+                        closeRiderModal();
+                        fetchAssignedOrders();
+                    }, 1500);
+                } else {
+                    // Error animation inside card
+                    pinInput.classList.add('shake');
+                    pinInput.value = '';
+
+                    feedbackDiv.innerHTML = `<div class="pin-feedback error">
+                        <div class="pin-result-icon error"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
+                        ${data.error || 'Incorrect PIN. Please try again.'}
+                    </div>`;
+
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+
+                    setTimeout(() => pinInput.classList.remove('shake'), 500);
+                    // Auto-clear error feedback after 3 seconds
+                    setTimeout(() => { if (feedbackDiv) feedbackDiv.innerHTML = ''; }, 3000);
+                }
+            } catch (e) {
+                feedbackDiv.innerHTML = `<div class="pin-feedback error">
+                    <div class="pin-result-icon error"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
+                    Network error. Please try again.
+                </div>`;
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                setTimeout(() => { if (feedbackDiv) feedbackDiv.innerHTML = ''; }, 3000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            fetchAssignedOrders();
+        });
+
+    </script>
+
+    <!-- Assignment Popup Modal -->
+    <div class="assignment-popup-overlay" id="assignmentPopup">
+        <div class="assignment-popup">
+            <div class="ap-icon">
+                <i data-lucide="package" width="28" height="28"></i>
+            </div>
+            <div class="ap-title">New Delivery Assignment!</div>
+            <div class="ap-subtitle">You have been assigned a new delivery order</div>
+            <div class="ap-details" id="apDetails">
+                <!-- Filled dynamically -->
+            </div>
+            <div class="ap-countdown-label">Auto-reassign in</div>
+            <div class="ap-countdown" id="apCountdown">90s</div>
+            <div class="ap-actions">
+                <button class="ap-btn reject" onclick="rejectAssignedOrder()">Reject</button>
+                <button class="ap-btn accept" onclick="acceptAssignedOrder()">Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ ASSIGNMENT POPUP & POLLING ============
+
+        let previousOrderIds = new Set();
+        let pendingAssignmentOrderId = null;
+        let countdownInterval = null;
+        let pollingInterval = null;
+
+        // Toggle rider online/offline status
+        async function toggleRiderStatus() {
+            const toggle = document.getElementById('riderStatusToggle');
+            const label = document.getElementById('statusLabel');
+            const newStatus = toggle.checked ? 'online' : 'offline';
+
+            // Check if past curfew (10 PM)
+            const now = new Date();
+            const hour = now.getHours();
+            if (newStatus === 'online' && hour >= 22) {
+                toggle.checked = false;
+                showNotification('Deliveries are closed after 10:00 PM. You can go online again tomorrow.', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/rider/status', {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ rider_status: newStatus })
+                });
+
+                if (res.ok) {
+                    label.textContent = toggle.checked ? 'Online' : 'Offline';
+                    label.className = 'status-toggle-label ' + newStatus;
+                    localStorage.setItem('riderStatus', newStatus);
+                    showNotification(`You are now ${newStatus.toUpperCase()}`, 'success');
+
+                    // Start/stop polling based on status
+                    if (newStatus === 'online') {
+                        startPolling();
+                    } else {
+                        stopPolling();
+                    }
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    console.error('[Toggle] Failed:', res.status, errData);
+                    toggle.checked = !toggle.checked; // revert
+                    showNotification('Failed to update status: ' + (errData.message || errData.error || res.status), 'error');
+                }
+            } catch (err) {
+                toggle.checked = !toggle.checked;
+                showNotification('Network error', 'error');
+            }
+        }
+
+        // Restore toggle state from DB on load (persists across refreshes & restarts)
+        async function restoreToggleState() {
+            const toggle = document.getElementById('riderStatusToggle');
+            const label = document.getElementById('statusLabel');
+
+            try {
+                // Fetch actual status from DB
+                const res = await fetch('/api/rider/my-status', {
+                    headers: getAuthHeaders()
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const dbStatus = data.rider_status || (data.is_available ? 'online' : 'offline');
+
+                    // Check for curfew (10 PM) — if past curfew, force offline
+                    const now = new Date();
+                    const hour = now.getHours();
+                    if (hour >= 22 && dbStatus === 'online') {
+                        // Auto-set offline
+                        await fetch('/api/rider/status', {
+                            method: 'PATCH',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify({ rider_status: 'offline' })
+                        });
+                        toggle.checked = false;
+                        label.textContent = 'Offline';
+                        label.className = 'status-toggle-label offline';
+                        localStorage.setItem('riderStatus', 'offline');
+                        showNotification('Deliveries are closed after 10:00 PM. Your status has been set to offline.', 'info');
+                        return;
+                    }
+
+                    if (dbStatus === 'online') {
+                        toggle.checked = true;
+                        label.textContent = 'Online';
+                        label.className = 'status-toggle-label online';
+                        localStorage.setItem('riderStatus', 'online');
+                        startPolling();
+                    } else {
+                        toggle.checked = false;
+                        label.textContent = 'Offline';
+                        label.className = 'status-toggle-label offline';
+                        localStorage.setItem('riderStatus', 'offline');
+                    }
+                } else {
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('riderStatus');
+                    if (saved === 'online') {
+                        toggle.checked = true;
+                        label.textContent = 'Online';
+                        label.className = 'status-toggle-label online';
+                        startPolling();
+                    }
+                }
+            } catch (e) {
+                // Fallback to localStorage if network fails
+                const saved = localStorage.getItem('riderStatus');
+                if (saved === 'online') {
+                    toggle.checked = true;
+                    label.textContent = 'Online';
+                    label.className = 'status-toggle-label online';
+                    startPolling();
+                }
+            }
+
+            // Set up curfew auto-check every minute
+            setInterval(checkCurfew, 60000);
+        }
+
+        // Auto-offline at 10 PM
+        function checkCurfew() {
+            const now = new Date();
+            const hour = now.getHours();
+            const toggle = document.getElementById('riderStatusToggle');
+
+            if (hour >= 22 && toggle.checked) {
+                console.log('[Curfew] It is past 10 PM, setting rider offline...');
+                toggle.checked = false;
+                toggleRiderStatus(); // This will fail the curfew check and keep offline
+                // Force it
+                fetch('/api/rider/status', {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ rider_status: 'offline' })
+                }).then(() => {
+                    const label = document.getElementById('statusLabel');
+                    label.textContent = 'Offline';
+                    label.className = 'status-toggle-label offline';
+                    localStorage.setItem('riderStatus', 'offline');
+                    stopPolling();
+                    showNotification('Deliveries are now closed (10:00 PM). See you tomorrow!', 'info');
+                });
+            }
+        }
+
+        // Poll for new assignments every 10 seconds
+        function startPolling() {
+            stopPolling();
+            pollingInterval = setInterval(async () => {
+                await fetchAssignedOrders();
+                checkForNewAssignments();
+            }, 10000);
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        // Detect new assignments and show popup
+        function checkForNewAssignments() {
+            if (!Array.isArray(allOrders)) return;
+            const currentIds = new Set(allOrders.map(o => o.id));
+            const newAssignedOrders = allOrders.filter(o =>
+                o.order_status === 'assigned' &&
+                !previousOrderIds.has(o.id)
+            );
+
+            if (newAssignedOrders.length > 0 && !pendingAssignmentOrderId) {
+                const order = newAssignedOrders[0];
+                showAssignmentPopup(order);
+            }
+
+            previousOrderIds = currentIds;
+        }
+
+        // Show the assignment popup
+        function showAssignmentPopup(order) {
+            pendingAssignmentOrderId = order.id;
+
+            let items = [];
+            try {
+                items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
+            } catch (e) { }
+            const itemsText = items.map(i => `${i.quantity}x ${i.name}`).join(', ') || 'Unknown';
+
+            document.getElementById('apDetails').innerHTML = `
+                <div class="ap-detail-row"><span class="label">Order ID</span><span class="value">#${order.id}</span></div>
+                <div class="ap-detail-row"><span class="label">Customer</span><span class="value">${order.customer_name || 'Guest'}</span></div>
+                <div class="ap-detail-row"><span class="label">Items</span><span class="value">${itemsText}</span></div>
+                <div class="ap-detail-row"><span class="label">Address</span><span class="value">${order.delivery_address || 'N/A'}</span></div>
+                <div class="ap-detail-row"><span class="label">Total</span><span class="value">$${parseFloat(order.total || 0).toFixed(2)}</span></div>
+            `;
+
+            document.getElementById('assignmentPopup').classList.add('show');
+
+            // Start countdown
+            let secondsLeft = 90;
+            if (order.assignment_expires_at) {
+                const expiresAt = new Date(order.assignment_expires_at).getTime();
+                secondsLeft = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+            }
+
+            updateCountdown(secondsLeft);
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                secondsLeft--;
+                updateCountdown(secondsLeft);
+                if (secondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    closeAssignmentPopup();
+                    showNotification('Assignment expired. Reassigning to another rider.', 'error');
+                    fetchAssignedOrders();
+                }
+            }, 1000);
+
+            lucide.createIcons();
+        }
+
+        function updateCountdown(seconds) {
+            const el = document.getElementById('apCountdown');
+            if (el) el.textContent = seconds + 's';
+        }
+
+        function closeAssignmentPopup() {
+            document.getElementById('assignmentPopup').classList.remove('show');
+            pendingAssignmentOrderId = null;
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+        }
+
+        // Accept the assigned order
+        async function acceptAssignedOrder() {
+            if (!pendingAssignmentOrderId) return;
+            const orderId = pendingAssignmentOrderId;
+
+            try {
+                const res = await fetch(`/api/rider/accept-order/${orderId}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+
+                if (res.ok) {
+                    showNotification('Order accepted! Check Active Deliveries.', 'success');
+                    closeAssignmentPopup();
+                    fetchAssignedOrders();
+                } else {
+                    const data = await res.json();
+                    showNotification(data.error || 'Failed to accept', 'error');
+                }
+            } catch (err) {
+                showNotification('Network error', 'error');
+            }
+        }
+
+        // Reject the assigned order
+        async function rejectAssignedOrder() {
+            if (!pendingAssignmentOrderId) return;
+            const orderId = pendingAssignmentOrderId;
+
+            try {
+                const res = await fetch(`/api/rider/reject-order/${orderId}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+
+                if (res.ok) {
+                    showNotification('Order rejected. It will be reassigned.', 'success');
+                    closeAssignmentPopup();
+                    fetchAssignedOrders();
+                } else {
+                    showNotification('Failed to reject', 'error');
+                }
+            } catch (err) {
+                showNotification('Network error', 'error');
+            }
+        }
+
+        // ============ ONESIGNAL INTEGRATION ============
+
+        let oneSignalReady = false;
+        let OneSignalRef = null; // Store the SDK reference
+
+        function osDebug(msg) {
+            console.log('[OneSignal] ' + msg);
+        }
+
+        async function initOneSignal() {
+            osDebug('initOneSignal() called');
+
+            try {
+                const configRes = await fetch('/api/config');
+                const config = await configRes.json();
+                const appId = config.onesignalAppId;
+                osDebug('App ID from config: ' + appId);
+
+                if (!appId || appId === 'YOUR_ONESIGNAL_APP_ID_HERE') {
+                    osDebug('No App ID configured, skipping');
+                    updateNotificationUI('unsupported');
+                    return;
+                }
+
+                // Use the v16 deferred push pattern
+                window.OneSignalDeferred = window.OneSignalDeferred || [];
+                window.OneSignalDeferred.push(async function (onesignal) {
+                    osDebug('Deferred callback fired — SDK is loaded');
+                    OneSignalRef = onesignal;
+
+                    try {
+                        await onesignal.init({
+                            appId: appId,
+                            serviceWorkerParam: { scope: '/' },
+                            serviceWorkerPath: '/OneSignalSDKWorker.js',
+                            allowLocalhostAsSecureOrigin: true,
+                            notifyButton: { enable: false }
+                        });
+
+                        oneSignalReady = true;
+                        osDebug('SDK initialized successfully!');
+
+                        // Check current state
+                        const nativePerm = typeof Notification !== 'undefined' ? Notification.permission : 'unsupported';
+                        const isOptedIn = onesignal.User.PushSubscription.optedIn;
+                        osDebug('Browser permission: ' + nativePerm + ' | OneSignal opted-in: ' + isOptedIn);
+
+                        if (nativePerm === 'granted' && isOptedIn) {
+                            updateNotificationUI('enabled');
+                            await registerPlayerId();
+                        } else if (nativePerm === 'denied') {
+                            updateNotificationUI('denied');
+                        } else {
+                            updateNotificationUI('disabled');
+                            // Auto-prompt after 3s on first visit
+                            const prompted = sessionStorage.getItem('onesignal_prompted');
+                            if (!prompted) {
+                                sessionStorage.setItem('onesignal_prompted', 'true');
+                                osDebug('Will auto-prompt in 3 seconds...');
+                                setTimeout(() => {
+                                    promptNotificationPermission();
+                                }, 3000);
+                            } else {
+                                osDebug('Already prompted this session, skipping auto-prompt');
+                            }
+                        }
+
+                        // Listen for subscription changes
+                        onesignal.User.PushSubscription.addEventListener('change', async (event) => {
+                            osDebug('Subscription change event: optedIn=' + event.current.optedIn);
+                            if (event.current.optedIn) {
+                                updateNotificationUI('enabled');
+                                await registerPlayerId();
+                            } else {
+                                updateNotificationUI('disabled');
+                            }
+                        });
+
+                    } catch (initErr) {
+                        osDebug('Init ERROR inside deferred: ' + initErr.message);
+                        console.error(initErr);
+                        // OneSignal failed (likely HTTP/localhost issue) — fall back to native notifications
+                        osDebug('Falling back to native browser Notification API...');
+                        initNativeFallback();
+                    }
+                });
+
+            } catch (e) {
+                osDebug('Config fetch ERROR: ' + e.message);
+                console.error(e);
+                initNativeFallback();
+            }
+        }
+
+        // ============ NATIVE NOTIFICATION FALLBACK ============
+        // Used when OneSignal can't initialize (e.g. HTTP localhost)
+        // This still allows push-like behavior via the server's push endpoint
+
+        let usingNativeFallback = false;
+
+        function initNativeFallback() {
+            if (typeof Notification === 'undefined') {
+                osDebug('Native Notification API not supported');
+                updateNotificationUI('unsupported');
+                return;
+            }
+
+            usingNativeFallback = true;
+            const perm = Notification.permission;
+            osDebug('Native fallback mode. Current permission: ' + perm);
+
+            if (perm === 'granted') {
+                updateNotificationUI('enabled');
+            } else if (perm === 'denied') {
+                updateNotificationUI('denied');
+            } else {
+                updateNotificationUI('disabled');
+                // Auto-prompt after 3 seconds
+                const prompted = sessionStorage.getItem('onesignal_prompted');
+                if (!prompted) {
+                    sessionStorage.setItem('onesignal_prompted', 'true');
+                    osDebug('Will show native permission prompt in 3 seconds...');
+                    setTimeout(async () => {
+                        osDebug('Requesting native notification permission...');
+                        const result = await Notification.requestPermission();
+                        osDebug('Native permission result: ' + result);
+                        if (result === 'granted') {
+                            updateNotificationUI('enabled');
+                            showNotification('Notifications enabled! You\'ll be notified of new assignments.', 'success');
+                        } else if (result === 'denied') {
+                            updateNotificationUI('denied');
+                        }
+                    }, 3000);
+                }
+            }
+        }
+
+        async function promptNotificationPermission() {
+            // Native fallback mode
+            if (usingNativeFallback || (!oneSignalReady || !OneSignalRef)) {
+                if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                    osDebug('Requesting native permission...');
+                    const perm = await Notification.requestPermission();
+                    osDebug('Native permission result: ' + perm);
+                    if (perm === 'granted') {
+                        updateNotificationUI('enabled');
+                        showNotification('Notifications enabled!', 'success');
+                    } else if (perm === 'denied') {
+                        updateNotificationUI('denied');
+                    }
+                } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                    updateNotificationUI('enabled');
+                }
+                return;
+            }
+            // OneSignal mode
+            try {
+                osDebug('Requesting permission via OneSignal...');
+                await OneSignalRef.Notifications.requestPermission();
+                const perm = Notification.permission;
+                osDebug('After requestPermission: ' + perm);
+
+                if (perm === 'granted') {
+                    await OneSignalRef.User.PushSubscription.optIn();
+                    updateNotificationUI('enabled');
+                    await registerPlayerId();
+                    showNotification('Push notifications enabled!', 'success');
+                } else if (perm === 'denied') {
+                    updateNotificationUI('denied');
+                    showNotification('Notifications blocked. You can enable them in browser settings.', 'error');
+                } else {
+                    updateNotificationUI('disabled');
+                }
+            } catch (e) {
+                osDebug('Permission prompt ERROR: ' + e.message);
+                console.error(e);
+            }
+        }
+
+        async function registerPlayerId() {
+            try {
+                if (!OneSignalRef) return;
+                await new Promise(r => setTimeout(r, 1500));
+                const playerId = OneSignalRef.User.PushSubscription.id;
+                if (!playerId) {
+                    osDebug('No player ID yet, retrying in 3s...');
+                    setTimeout(() => registerPlayerId(), 3000);
+                    return;
+                }
+                const token = sessionStorage.getItem('riderToken');
+                if (!token) { osDebug('No rider token, cannot register'); return; }
+
+                const res = await fetch('/api/rider/onesignal-id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ onesignal_player_id: playerId })
+                });
+                if (res.ok) {
+                    osDebug('Player ID registered: ' + playerId);
+                } else {
+                    osDebug('Failed to register player ID, status: ' + res.status);
+                }
+            } catch (e) {
+                osDebug('Register player ID ERROR: ' + e.message);
+            }
+        }
+
+        async function toggleNotifications() {
+            // Native fallback mode
+            if (usingNativeFallback) {
+                const perm = Notification.permission;
+                if (perm === 'granted') {
+                    // Can't programmatically revoke native permissions — inform user
+                    showNotification('To disable notifications, click the lock/tune icon in the address bar > Site settings > Notifications > Block.', 'info');
+                } else if (perm === 'default') {
+                    await promptNotificationPermission();
+                } else {
+                    updateNotificationUI('denied');
+                    showNotification('Notifications are blocked. Click the lock/tune icon in your address bar > Site settings > Notifications > Allow.', 'error');
+                }
+                return;
+            }
+
+            if (!oneSignalReady || !OneSignalRef) {
+                // Fallback: try native prompt
+                if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                    await promptNotificationPermission();
+                    return;
+                }
+                showNotification('Push notifications are not available.', 'error');
+                return;
+            }
+
+            const isSubscribed = OneSignalRef.User.PushSubscription.optedIn;
+            osDebug('toggleNotifications: isSubscribed=' + isSubscribed);
+
+            if (isSubscribed) {
+                try {
+                    await OneSignalRef.User.PushSubscription.optOut();
+                    updateNotificationUI('disabled');
+                    showNotification('Push notifications disabled.', 'success');
+                } catch (e) {
+                    console.error(e);
+                    showNotification('Failed to disable notifications.', 'error');
+                }
+            } else {
+                if (Notification.permission === 'denied') {
+                    updateNotificationUI('denied');
+                    showNotification('Notifications are blocked by your browser. Click the lock/tune icon in your address bar > Site settings > Notifications > Allow.', 'error');
+                    return;
+                }
+                await promptNotificationPermission();
+            }
+        }
+
+        function updateNotificationUI(state) {
+            const badge = document.getElementById('notifStatusBadge');
+            const badgeText = document.getElementById('notifStatusText');
+            const toggleBtn = document.getElementById('notifToggleBtn');
+            const toggleBtnText = document.getElementById('notifToggleBtnText');
+            const testRow = document.getElementById('notifTestRow');
+
+            if (!badge || !toggleBtn) return;
+
+            // Reset classes
+            badge.className = 'notif-status-badge';
+            toggleBtn.className = 'btn-notif';
+
+            switch (state) {
+                case 'enabled':
+                    badge.classList.add('enabled');
+                    badge.innerHTML = '<i data-lucide="bell-ring" width="14" height="14"></i> <span id="notifStatusText">Enabled</span>';
+                    toggleBtn.classList.add('disable');
+                    toggleBtnText = toggleBtn.querySelector('span') || toggleBtn;
+                    toggleBtn.innerHTML = '<i data-lucide="bell-off" width="16" height="16"></i> <span id="notifToggleBtnText">Disable</span>';
+                    if (testRow) testRow.style.display = 'flex';
+                    break;
+                case 'disabled':
+                    badge.classList.add('disabled');
+                    badge.innerHTML = '<i data-lucide="bell-off" width="14" height="14"></i> <span id="notifStatusText">Disabled</span>';
+                    toggleBtn.classList.add('enable');
+                    toggleBtn.innerHTML = '<i data-lucide="bell-ring" width="16" height="16"></i> <span id="notifToggleBtnText">Enable</span>';
+                    if (testRow) testRow.style.display = 'none';
+                    break;
+                case 'denied':
+                    badge.classList.add('disabled');
+                    badge.innerHTML = '<i data-lucide="shield-off" width="14" height="14"></i> <span id="notifStatusText">Blocked by Browser</span>';
+                    toggleBtn.classList.add('enable');
+                    toggleBtn.innerHTML = '<i data-lucide="bell-ring" width="16" height="16"></i> <span id="notifToggleBtnText">Enable</span>';
+                    if (testRow) testRow.style.display = 'none';
+                    break;
+                case 'unsupported':
+                    badge.classList.add('unsupported');
+                    badge.innerHTML = '<i data-lucide="alert-triangle" width="14" height="14"></i> <span id="notifStatusText">Not Available</span>';
+                    toggleBtn.style.display = 'none';
+                    if (testRow) testRow.style.display = 'none';
+                    break;
+            }
+
+            // Re-render lucide icons in the updated elements
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        async function sendTestNotification() {
+            // Native fallback: show a local notification directly
+            if (usingNativeFallback) {
+                if (Notification.permission === 'granted') {
+                    new Notification('🔔 Test Notification', {
+                        body: 'Your notifications are working! You\'ll be alerted for new deliveries.',
+                        icon: '/favicon.ico'
+                    });
+                    showNotification('Test notification sent!', 'success');
+                } else {
+                    showNotification('Please enable notifications first.', 'error');
+                }
+                return;
+            }
+
+            if (!oneSignalReady || !OneSignalRef) return;
+            const playerId = OneSignalRef.User.PushSubscription.id;
+            if (!playerId) {
+                showNotification('No subscription found. Please enable notifications first.', 'error');
+                return;
+            }
+            try {
+                const token = sessionStorage.getItem('riderToken');
+                const res = await fetch('/api/rider/test-notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (res.ok) {
+                    showNotification('Test notification sent! Check your device.', 'success');
+                } else {
+                    showNotification('Failed to send test notification.', 'error');
+                }
+            } catch (e) {
+                showNotification('Network error sending test.', 'error');
+            }
+        }
+
+        // ============ UPDATED DOMContentLoaded ============
+
+        // Store initial order IDs to avoid popup on first load
+        const originalDOMLoaded = document.querySelector('script');
+    </script>
+
+    <script>
+        // Override DOMContentLoaded to add toggle restore and polling
+        (function () {
+            const origListener = null;
+            window.addEventListener('load', () => {
+                restoreToggleState();
+                // Initialize previousOrderIds with current orders to prevent popup on load
+                setTimeout(() => {
+                    previousOrderIds = new Set(allOrders.map(o => o.id));
+                }, 2000);
+                // Initialize OneSignal push notifications
+                initOneSignal();
+            });
+        })();
+    </script>
+</body>
+
+</html>
